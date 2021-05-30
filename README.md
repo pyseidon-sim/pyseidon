@@ -51,7 +51,7 @@ python main.py          \
 
 ## Documentation
 
-For detailed instructions how to install and use PySeidon, see the [Documentation](https://pyseidon.gitlab.io/pyseidon).
+For detailed instructions how to install and use PySeidon, see the [Documentation](https://pyseidon-sim.github.io/pyseidon/).
 
 ## Future work
 
