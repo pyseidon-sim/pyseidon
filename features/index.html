@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Features - PySeidon</title>
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Features";
+    var mkdocs_page_input_path = "features.md";
+    var mkdocs_page_url = "/pyseidon/features/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> PySeidon</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Features</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#architecture">Architecture</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#entity-component-systems">Entity-component systems</a></li>
+        
+            <li><a class="toctree-l3" href="#simulated-agents-and-infrastructure">Simulated agents and infrastructure</a></li>
+        
+            <li><a class="toctree-l3" href="#simulated-anomalies">Simulated anomalies</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../data/">Required data</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../usage/">Usage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">PySeidon</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Features</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="architecture">Architecture</h1>
+<h2 id="entity-component-systems">Entity-component systems</h2>
+<p>The simulation framework is based on the ESC <a href="https://github.com/benmoran56/esper">Esper</a>. This ECS system consists of the following elements:</p>
+<ul>
+<li><strong>Entities</strong>: labels that represent simulated entities (vessels, berths, etc.). They have no properties or methods. Components provide properties and processors provide method implementations</li>
+<li><strong>Components</strong>: data objects (such as position, velocity, etc.). They should <strong>NOT</strong> include any method or computation</li>
+<li><strong>Processors</strong>: classes that process a set of entities identified by their components. For example a vessel entity might be characterized by a position, velocity and vessel_info components</li>
+</ul>
+<p>As an example consider the mock simulation world in the figure below. There are two classes of entities, namely <code>Vessel</code> and <code>Terminal</code> which are respectively composed by (<code>Position</code>, <code>Path</code>) and (<code>Position</code>). Each system processes a subset of entities at each tick of the simulation, for example, the <code>Rendering</code> system will query all entities who have a <code>Position</code> component and display them on-screen, while the <code>Movement</code> system will only care about entities with <code>Position</code> and <code>Path</code> components.</p>
+<p><img alt="ECS example" src="../diagrams/game.png" /></p>
+<h3 id="packages">Packages</h3>
+<p>This section provides a schematic overview of the major packages that compose the simulation framework</p>
+<h4 id="components">Components</h4>
+<p><img alt="Components package" src="../diagrams/components.png" /></p>
+<h4 id="environment">Environment</h4>
+<p><img alt="Environment package" src="../diagrams/environment.png" /></p>
+<h4 id="miscellaneous">Miscellaneous</h4>
+<p><img alt="Misc packages" src="../diagrams/misc.png" /></p>
+<h4 id="processors">Processors</h4>
+<p><img alt="Processors package" src="../diagrams/processors.png" /></p>
+<hr />
+<h2 id="simulated-agents-and-infrastructure">Simulated agents and infrastructure</h2>
+<p>The simulation can simulate the following agents and infrastructure components:</p>
+<h3 id="agents">Agents</h3>
+<h4 id="vessel">Vessel</h4>
+<p>The ship which needs the port services for loading/unloading cargo, maintenance, fuel, etc.
+The behavior of incoming vessels is simulated using the following state machine:</p>
+<p><img alt="Vessel FSM" src="../diagrams/vessel_fsm.png" /></p>
+<p>Following the previous diagrams vessels are either routed to an anchorage, a rendezvous or straight to the terminal depending on resources requests and availability (a more detailed diagram is shown in the messaging section).</p>
+<p>The navigation of vessels is simulated using paths extracted (and augmented) from AIS data. Movement is simulated using a simple speed based model (where acceleration/deceleration is instantaneous).</p>
+<h4 id="pilots">Pilots</h4>
+<p>Pilots (working for the port) assist vessels entering or leaving a port. Pilots do so as they are experts of the port infrastructure and navigating big vessels in the port.</p>
+<p>The pilots are described by the following FSM diagram:</p>
+<p><img alt="Pilot FSM" src="../diagrams/pilot_fsm.png" /></p>
+<h4 id="tugboats">Tugboats</h4>
+<p>A tugboat is a strongly built powerful boat, that is used for towing and pushing (<a href="https://www.merriam-webster.com/dictionary/tugboat">Merriam-Webster</a>). Tugboats are used to maneuver large vessels inside the port with more accuracy and precision.</p>
+<p>The simulated behavior of tugboats is described by the following FSM diagram:</p>
+<p><img alt="Tug FSM" src="../diagrams/tug_fsm.png" /></p>
+<h3 id="infrastructure">Infrastructure</h3>
+<h4 id="berth">Berth</h4>
+<p>The location where a ship lies when being serviced or waiting for departure. Berths are grouped into a terminal, which is usually dedicated to a single cargo type (e.g. oil, containers, etc.)</p>
+<h4 id="anchorage">Anchorage</h4>
+<p>An anchorage is defined as the area where vessels drop anchor, or anchor, awaiting their entry into that part of the harbour reserved for performing typical port type operations (loading, unloading, supplies, repairs, etc.), which however does not exclude these operations frequently being undertaken at the anchorages (Puertos Del Estado, 2007)</p>
+<h4 id="tugboats-locations">Tugboats locations</h4>
+<ul>
+<li><strong>Rendezvous locations:</strong> meeting points between vessels and tugboats where tugboats are connected to vessels and the tugging process starts</li>
+<li><strong>Waiting locations:</strong> locations used to park tugboats when their services are not required</li>
+</ul>
+<h4 id="pilot-locations">Pilot locations</h4>
+<ul>
+<li><strong>Rendezvous locations:</strong> meeting points between vessels and pilots where pilots board the vessel and pilotage starts</li>
+<li><strong>Waiting locations:</strong> locations used to park pilot tender vessels when their services are not required</li>
+</ul>
+<h4 id="port-sections">Port sections</h4>
+<p>The frameworks allows to separate the port waterways (navigable area inside the port) in sections. Each section has the following constraints:</p>
+<ul>
+<li>Maximum and minimum speed</li>
+</ul>
+<h3 id="agents-communication">Agents communication</h3>
+<p>The agents in the simulation can communicate via the <code>MessageBroker</code>. Each message has a <code>sender</code>, a <code>receiver</code> a <code>message_type</code> and an optional <code>data</code> property.</p>
+<p>Simulation entities are identified by their entity id and unique agents (such as the harbour master) are identified by a string. In practice, this means that if a vessel (say entity 195) wants to send a message to the harbour master the <code>sender</code> will be <code>ent:195</code> and the <code>receiver</code> will be <code>harbour-master</code>. Such a message can be created as follows</p>
+<pre><code class="python">message = SimulationMessage(
+    sender=&quot;vessel:195&quot;,
+    destination=&quot;harbour-master&quot;,
+    message=VesselMessageType.CHANGE_SECTION)
+</code></pre>
+
+<p>In the current implementation only <code>vessel</code> agents communicate with the <code>harbour-master</code> agent which takes care of allocating port resources to the vessel. In practice this does not happen, for instance tugboat companies communicate directly with the shipping company that owns the vessel for booking tugs.</p>
+<h4 id="vessel-messages">Vessel messages</h4>
+<p>Each vessel entity generates the various messages and sends them to the <code>harbour-master</code>. The following diagram describes which messages are sent to the <code>harbour-master</code> entity at each state of the vessel process (including the decisions taken by the <code>harbour-master</code> entity)</p>
+<p><img alt="Process legend" src="../diagrams/legend.png" /></p>
+<hr />
+<p><img alt="Vessel process" src="../diagrams/messaging.png" /></p>
+<p>The <code>harbour-master</code> processor handles such messages based on a pluggable strategy. The default strategy is in the class <code>DefaultVesselStrategy</code></p>
+<p>Moreover, each vessel notifies the harbour-master when it enters/exits a section. These events are not handled directly by the harbour master and a modeller can handle them by setting <code>on_enter_section</code> and <code>on_exit_section</code> on the <code>HarbourMasterProcessor</code> class. For example:</p>
+<pre><code class="python">hm_processor = HarbourMasterProcessor(
+    world=world,
+    vessel_strategy=vessel_strategy,
+    logger=vessel_event_logger)
+
+# Handle the vessel exited section event
+hm_processor.on_exit_section = lambda msg, ent, vessel_info: ...
+</code></pre>
+
+<h2 id="simulated-anomalies">Simulated anomalies</h2>
+<h3 id="random-berth-inspection">Random berth inspection</h3>
+<p>There exists a probability <em>p</em> that every time a vessel
+is serviced at a berth, it might happen that a berth inspection occurs.
+In which case, the berth service time is increased by a random time (or, by default, 5 hours).</p>
+<h3 id="unusual-vessel-velocities">Unusual vessel velocities</h3>
+<p>Using the simulation of the Port of Rotterdam we generated 
+anomalies related to a vessel's velocity using a Markov model. 
+The markov model, depicted below, has three 
+states: normal, fast and slow. In the <em>slow</em> and <em>fast</em> 
+states the vessel's velocity is respectively divided or multiplied 
+by a scalar. The arrows in the figure below represent the 
+transition probabilities between states and a transition is performed
+every two hours (in simulation time).</p>
+<p><img alt="Markov Model for Vessel Velocity Anomalies" src="../diagrams/markovModel.png" /></p>
+<h3 id="tugboat-malfunction">Tugboat malfunction</h3>
+<p>There exists a probability <em>t_i</em> and <em>t_b</em> which denote the chances of the
+tugboat malfunctioning in an idle state and in a busy state respectively. If a 
+tugboat malfunctions, then the tugboat stops in its current location and is unavailable for
+5 hours. After the designated time, it is assumed that the vessel gets fixed and it proceeds
+to go to its waiting location for a new assignment. If the tugboat malfunctions in an idle state (without an assignment), then it does
+not have a big impact for vessels other than the usual unavailability consequences. If the
+tugboat malfunctions and was on its way to a tugboat rendezvous, then a different tugboat is
+assigned to that vessel. If a tugboat malfunctions when it is tugging a vessel, then
+the vessel (and all other tugging tugboats) stop and wait for a replacement tugboat to arrive.
+If a replacement tug is not available, then this check is performed again in 30 simualation minutes (so as to reduce
+computational overhead a bit). The vessel (and tugboats) waits until the required amount of tugboats is present.</p>
+<hr />
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../data/" class="btn btn-neutral float-right" title="Required data">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../data/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>

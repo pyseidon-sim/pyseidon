@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Port Simulator - PySeidon</title>
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Port Simulator";
+    var mkdocs_page_input_path = "guide.md";
+    var mkdocs_page_url = "/pyseidon/guide/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> PySeidon</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../features/">Features</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../data/">Required data</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../usage/">Usage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">PySeidon</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Port Simulator</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="port-simulator">Port Simulator</h1>
+<p>This framework is designed to simulate maritime port environments. The system can be de-composed in the following elements:</p>
+<ul>
+<li>Vessel generation: generates new incoming vessels </li>
+<li>Anchorages </li>
+<li>Navigation: simulates vessel navigation based on AIS data</li>
+<li>Services: tugboats and pilots</li>
+<li>Terminal: simulate berth operations</li>
+<li>Vessel: vessel strategy, or, in other words, what should the vessel do?</li>
+<li>Messaging: communication system between entities</li>
+</ul>
+<p>The image below highlights which simulation components are implemented (green), partially implemented (yellow) and not yet implemented (red).</p>
+<p><img alt="" src="../images/system.png" /></p>
+<p>To quickly run the example model execute the following:</p>
+<pre><code class="sh">python main.py          \
+    --out sim-output    \
+    --step 10           \
+    --verbose y         \
+    --graphics y        \
+    --cache y           \
+    --seed 567
+</code></pre>
+
+<h3 id="vessel-generation">Vessel generation</h3>
+<p>The vessel generation is handled by the <code>VesselGeneratorProcessor</code> class, this class requires the following parameters:</p>
+<ul>
+<li><code>inter_arrival_time_sampler</code>: a function <em>f(vessel_type)</em> that returns the sampled inter-arrival time for the next vessel arrival (of the input type)</li>
+<li><code>vessel_info_sampler</code>: a function <em>f(vessel_type)</em> that returns the vessel properties (a <code>VesselInfo</code> object, or a subclass) for the given vessel type</li>
+<li><code>spawn_area_filename</code>: path to a geojson file that defines a single polygon, the area in which vessels are generated. See <code>map_data/ocean/spawn.geojson</code> for an example</li>
+</ul>
+<p>For an example see <code>example_model/berth_service_distribution_factory.py</code></p>
+<h3 id="anchorages">Anchorages</h3>
+<p>Anchorages are implemented as a simple FIFO queuing system. Anchorages are loaded from a GeoJSON file with a single <code>FeatureCollection</code> containing a list of <code>Polygons</code>, each defined as:</p>
+<pre><code class="json">{
+    &quot;type&quot;: &quot;Feature&quot;,
+    &quot;properties&quot;: {
+        &quot;name&quot;: &quot;1&quot;,            // Anchorage name
+        &quot;max_draught&quot;: 10.0,    // Max draught in meters
+        &quot;use&quot;: &quot;&quot;,              // Optional
+        &quot;id&quot;: 0                 // Unique anchorage identifier
+    },
+    &quot;geometry&quot;: {
+        &quot;type&quot;: &quot;Polygon&quot;,
+        &quot;coordinates&quot;: [
+            [1.377333, 42.047833],
+            [1.305833, 42.065863],
+            [1.314286, 42.103538],
+            [1.356744, 42.134278],
+            [1.367560, 42.136667]
+        ]
+    }
+}
+</code></pre>
+
+<p>See <code>map_data/anchorages/anchorages.geojson</code> for a complete example.</p>
+<p>The anchorage loading is done via the <code>AnchoragesInitializer</code> class in the following way:</p>
+<pre><code class="python">anchorages_generator = AnchoragesInitializer(world, anchorages_filename)
+anchorages_generator.create_anchorages()
+</code></pre>
+
+<p>The anchorage allocation is explained in the <strong>Vessel</strong> section.</p>
+<h3 id="navigation">Navigation</h3>
+<p>Vessel navigation is simulated using traces extracted from the AIS data. Traces can be created using the tracer tool, stored in the <code>ais-tracer</code> repository.</p>
+<p>Navigation is handled by the <code>PathFinder</code> singleton, which can be initialized in the following way:</p>
+<pre><code class="python">path_finder = PathFinder.get_instance()
+# traces_folder specifies the path to a folder containing a set of traces in GeoJSON files.
+path_finder.load_traces(traces_folder)
+</code></pre>
+
+<p>The PathFinder takes care of finding suitable routes for incoming and departing vessels. Consult the class for further documentation on its workings.</p>
+<p>To generate a path from the ocean to a given berth (identified by <code>berth_id</code>) use the method <code>ocean_berth_path()</code>. To generate a path from a given berth to the ocean use <code>ocean_berth_path()</code> and reverse it using <code>reverse_path()</code></p>
+<h3 id="services">Services</h3>
+<p>Work in progress</p>
+<h3 id="terminals-and-berths">Terminals and berths</h3>
+<p>Berths are loaded in the model via the <code>BerthInitializer</code>:</p>
+<pre><code class="python"># BerthServiceDistributionFactory reads a service times csv file
+# and returns the average service time for each berth
+berth_service_distribution_factory = BerthServiceDistributionFactory(
+    terminal_service_times_filename)
+
+berths_generator = BerthsInitializer(
+    world,
+    berths_filename,
+    berth_service_distribution_factory)
+
+berths_generator.create_berths()
+</code></pre>
+
+<p>The <code>berths_filename</code> points to a <code>.csv</code> file with the following fields:</p>
+<ul>
+<li><code>id</code>: unique berth identifier</li>
+<li><code>name</code>: berth name</li>
+<li><code>lat</code>: latitude in WSG84 format</li>
+<li><code>lon</code>: longitude in WSG84 format</li>
+<li><code>description</code>: optional description</li>
+<li><code>type</code>: berth type (not used in the model)</li>
+<li><code>max_quay_length</code>: max quay length in meters</li>
+<li><code>max_depth</code>: max depth in meters</li>
+<li><code>vessel_types</code>: allowed vessel classes</li>
+<li><code>terminal</code>: terminal to which the berth belongs to. Terminal names must match the ones in the terminal service times file</li>
+</ul>
+<p>The berth identifiers should match the ones used in the traces, so, if a trace $x$ connects the ocean to berth 137 there must exist a berth with id 137 in the berths file.</p>
+<hr />
+<p>Terminal service times are loaded from a <code>.csv</code> file (in the example above <code>terminal_service_times_filename</code>) with the following columns:</p>
+<ul>
+<li><code>terminal</code>: name of the terminal</li>
+<li><code>section</code>: section id of the terminal</li>
+<li><code>class 1</code>: average service time in seconds for class 1 vessels</li>
+<li><code>class 2</code>: average service time in seconds for class 1 vessels</li>
+<li><code>...</code>: average service time in seconds for other classes</li>
+</ul>
+<h3 id="vessel">Vessel</h3>
+<p>The behavior of vessel is defined by a strategy class, for an example see the <code>DefaultVesselStrategy</code> class. This class is used by the harbour master to decide what should be the next step for the vessel.</p>
+<pre><code class="python"># See the class for further documentations
+vessel_strategy = DefaultVesselStrategy(
+    world=world,
+    anchorage_designator=assign_anchorage,
+    berth_designator=berth_allocation_designator,
+    path_finder=path_finder)
+</code></pre>
+
+<p>The decision system of a vessel is composed of three main elements, the <code>VesselGoalFormulator</code>, which zkeeps track of the current goal and generates an event (by sending a message to the Harbour Master) when the current goal is met. The Harbour Master has a <code>vessel_strategy</code> object which processes the incoming message and returns a decision, which is then in turn sent back to the vessel.</p>
+<p><img alt="" src="../images/vessel_messages.png" /></p>
+<p>This structure allows the vessel strategy to be replaced easily by an alternative strategy.</p>
+<h3 id="messaging">Messaging</h3>
+<p>For more information on messaging see <code>messaging.md</code></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>

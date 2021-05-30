@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An extendable and modular software for maritime port simulation.">
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>Home - PySeidon</title>
+  <link rel="stylesheet" href="css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Home";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/pyseidon/";
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> PySeidon</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href=".">Home</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#pyseidon-a-data-driven-maritime-port-simulator">PySeidon - A Data-Driven Maritime Port Simulator 🌊</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#overview">Overview</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="features/">Features</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="data/">Required data</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="usage/">Usage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">PySeidon</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="pyseidon-a-data-driven-maritime-port-simulator">PySeidon - A Data-Driven Maritime Port Simulator 🌊</h1>
+<p><img src="images/preview.jpg" alt="Image of the simulation software" width="1000"/></p>
+<p><a href="https://gitlab.com/pyseidon/pyseidon">Pyseidon</a> is an extendable and modular software for maritime port simulation.</p>
+<p>This software uses <a href="https://en.wikipedia.org/wiki/Entity_component_system">entity-component system</a> approach making it highly customizable for various end goals and easily built upon.</p>
+<h2 id="overview">Overview</h2>
+<p>PySeidon was primarily designed for port scenario testing, but can be used for a variety of other tasks. Software can be adapted to simulate any maritime port provided that the <a href="data/">required data is available</a>.
+The simulator can be tested with different factors, such as:</p>
+<ul>
+<li>New/different anchorage location</li>
+<li>Different number of tugboat/pilots available</li>
+<li>Different priority order depending on ship class/size</li>
+<li>Etc...</li>
+</ul>
+<p>PySeidon's output can then give useful insights whether the given change improves certain Key Performance Indicators (check <a href="https://gitlab.com/pyseidon/ais-tools">this repository</a> for scripts to analyse simulation results).</p>
+<p>PySeidon can be used to create new data for various downstream tasks (e.g. anomaly detection), approximate impact on Key Performance Indicators of some decision, novelty introduced in a port.
+The supplemental visualization software can be used to analyse general (or created by simulation) <a href="https://gitlab.com/pyseidon/ais-visualization">AIS data over time</a> or <a href="https://gitlab.com/pyseidon/simulator-flow-analysis">analyse simulation states</a> (for debugging).</p>
+<h3 id="features">Features</h3>
+<ul>
+<li>Simulation of the following agents and infrastructure elements<ul>
+<li>Agents: vessel, tugboats, pilots</li>
+<li>Infrastructure components: berths, anchorages, tugboat rendezvous and storage locations, pilot rendezvous and storage locations</li>
+<li>Introduction of anomalies such as randomized berth inspections, tugboat malfunctions, anomalous vessel velocity. These can be used to create
+  datasets that are currently not available</li>
+</ul>
+</li>
+<li>Visualization of the simulation: infrastructure components and agents, including an overview of vessel and berth information at any moment in time</li>
+<li>Simulation of anomalies: random berth inspection, tugboat malfunctions, unusual vessel velocities</li>
+<li>Clean way of conducting experiments of the simulation (multiple runs, no graphics, aggregating output data of the simulation)</li>
+<li>The simulation engine relies on the input data, minimal actual code modification (model and <code>main.py</code>) is required to adapt to different maritime ports if no additional features are to be implemented</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<p>Install the required dependencies by running <code>pip install -r requirements.txt</code> (you might want to use <a href="https://www.anaconda.com/">Anaconda</a> to manage your Python environments).</p>
+<p>You might also have to install <code>libgeos</code> (a requirement of <a href="https://pypi.org/project/Shapely/">Shapely</a>). On Ubuntu you can install it by running <code>sudo apt-get install libgeos-dev</code></p>
+<h3 id="running-the-simulator">Running the simulator</h3>
+<pre><code class="sh">&gt; python main.py --help
+
+usage: main.py [-h] --out OUT [--step STEP] [--max-time MAX_TIME] [--verbose VERBOSE] [--graphics GRAPHICS] [--cache CACHE] [--tugs-allocation-data TUGS_ALLOCATION_DATA] [--single-tugs-company SINGLE_TUGS_COMPANY] [--fixed-generation FIXED_GENERATION]
+               [--berth-check-prob BERTH_CHECK_PROB] [--anomalous-speed ANOMALOUS_SPEED] [--tugs-malfunction TUGS_MALFUNCTION] [--tugs-break-percentage-idle TUGS_BREAK_PERCENTAGE_IDLE] [--tugs-break-percentage-busy TUGS_BREAK_PERCENTAGE_BUSY] [--seed SEED]
+
+PySeidon - a Maritime Port Simulator
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --out OUT             Output directory
+  --step STEP           Step size (seconds)
+  --max-time MAX_TIME   Maximum simulation time
+  --verbose VERBOSE     Verbose output? [y/n]
+  --graphics GRAPHICS   Display the simulation on-screen? [y/n]
+  --cache CACHE         Use the traces cache? [y/n]
+  --tugs-allocation-data TUGS_ALLOCATION_DATA
+                        Allocate tugs from data or randomly? [y/n]
+  --single-tugs-company SINGLE_TUGS_COMPANY
+                        Use a single tugboat company? [y/n]
+  --fixed-generation FIXED_GENERATION
+                        Generate all arrivals at the beginning of the
+                        simulation or on the fly? [y/n]
+  --berth-check-prob BERTH_CHECK_PROB
+                        The probability of a randomized check for a berth (0
+                        &lt;= x &lt;= 1)
+  --anomalous-speed ANOMALOUS_SPEED
+                        Whether to add speed anomalies [y/n]
+  --tugs-malfunction TUGS_MALFUNCTION
+                        Introduce tugs breaking down anomaly? [y/n]
+  --tugs-break-percentage-idle TUGS_BREAK_PERCENTAGE_IDLE
+                        Probability of an idle tug malfunctioning at every
+                        iteration.
+  --tugs-break-percentage-busy TUGS_BREAK_PERCENTAGE_BUSY
+                        Probability of a busy tug malfunctioning at every
+                        iteration.
+  --seed SEED           Seed for random generators.
+</code></pre>
+
+<p>To run the simulator execute <code>python main.py</code> with the desired flags as shown above. When you want to interrupt the simulation, press <code>CTRL + C</code> in the terminal window. The app will close and output the simulation statistics to the terminal.</p>
+<p><strong>Note:</strong> closing the app window will not display the statistics.</p>
+<h3 id="running-tests">Running tests</h3>
+<p>We use <code>pytest</code> as the test runner. In order to run tests execute <code>pytest</code> in the root folder. For coverage information run <code>pytest --cov</code> (you might need to install <code>pytest-cov</code> first).</p>
+<h3 id="output-analysis">Output analysis</h3>
+<pre><code class="sh">&gt; python output_analysis.py --help
+
+usage: output_analysis.py [-h] --i I [--w W] [--steady STEADY]
+
+A script that takes in a directory of simulation output files, where each file represents an
+independent run of the simulation, and computes some Key Performance Indicators: - time each
+vessel class spends in anchorages - time each vessel class spends inside the port - total port
+throughput for each vessel class - total tugboats throughput of each vessel class - total service
+times of tugboats for each vessel class - total berth service time for each vessel class. This
+script also provides a graph with a smoothed curve of vessel throughput for a specific class.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --i I            Directory of output files of the simulation
+  --w W            Define window in seconds for which to compute metrics. Default: 86400 sec (1
+                   day)
+  --steady STEADY  Define a specified time (in seconds) from which to start calculating KPIs.
+                   This can be usedto specify when the simulation enters a steady state. This
+                   time can be uncovered when running this script once without this parameter.
+                   Then graphically inspecting the output plot and determining when the curve has
+                   plateaued.
+
+</code></pre>
+
+<p>To perform output analysis, run <code>python output_analysis.py --i &lt;input-dir&gt;</code>. After running this script for the first
+time, look at the computed graph. Decide when the simulation enters steady-state using a <a href="https://staff.aub.edu.lb/~bm05/INDE504/set_6_output_2_17.pdf">graphical method</a>.
+After you decide when the simulation enters steady-state, run the script with the <code>--steady &lt;steady time point&gt;</code> where 
+<code>&lt;steady time point&gt;</code> is a time (in seconds) after which the simulation enters steady state as determined by the 
+aforementioned graphical inspection method. Thus, the script will now compute the KPIs only for the steady-state version of the simulation.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="features/" class="btn btn-neutral float-right" title="Features">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+        <span style="margin-left: 15px"><a href="features/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.0.4
+Build Date UTC : 2021-05-30 10:46:50
+-->

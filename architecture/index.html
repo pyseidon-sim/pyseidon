@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Simulation Architecture - PySeidon</title>
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Simulation Architecture";
+    var mkdocs_page_input_path = "architecture.md";
+    var mkdocs_page_url = "/pyseidon/architecture/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> PySeidon</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../features/">Features</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../data/">Required data</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../usage/">Usage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">PySeidon</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Simulation Architecture</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="simulation-architecture">Simulation Architecture</h1>
+<p>The simulation framework is based on the ESC <a href="https://github.com/benmoran56/esper">Esper</a>. This ECS system consists of the following elements:</p>
+<ul>
+<li><strong>Entities</strong>: labels that represent simulated entities (vessels, berths, etc.). They have no properties or methods. Components provide properties and processors provide method implementations</li>
+<li><strong>Components</strong>: data objects (such as position, velocity, etc.). They should <strong>NOT</strong> include any method or computation</li>
+<li><strong>Processors</strong>: classes that process a set of entities identified by their components. For example a vessel entity might be characterized by a position, velocity and vessel_info components</li>
+</ul>
+<p>Please refer to the official Esper <a href="https://github.com/benmoran56/esper">documentation</a> for learning more.</p>
+<h2 id="packages">Packages</h2>
+<p>The simulation framework is divided in the following packages:</p>
+<h3 id="components">Components</h3>
+<p>Contains data and finite state machines components for vessels and berths.</p>
+<h3 id="processors">Processors</h3>
+<p>Contains the classes that interact directly with the simulation, such as generators (e.g. vessel generation), renderers etc.</p>
+<p>Following a reference of the main processors</p>
+<h5 id="vesselgeneratorprocessor">VesselGeneratorProcessor</h5>
+<p>Generates new vessels provided an inter-arrival time distribution and a user-provided vessel properties generator, that generates vessel length, width, etc. (see <code>VesselInfo</code> for details)</p>
+<pre><code class="python">    VesselGeneratorProcessor(
+        # Simulation world
+        world,
+        # The inter-arrival time distribution
+        lambda: np.random.exponential(scale=1),
+        # The vessel properties generator
+        lambda: return VesselInfo(...))
+</code></pre>
+
+<h5 id="renderers">Renderers</h5>
+<p>These components take care of rendering entities on-screen</p>
+<h5 id="timer-processor">Timer Processor</h5>
+<p>This processor is in charge of advancing the currently scheduled timer's internal clock</p>
+<h5 id="movement-processor">Movement processor</h5>
+<p>This processor simulates the vessel movement, currently using a simple fixed speed based model. </p>
+<h5 id="vessel-goal-formulator">Vessel Goal Formulator</h5>
+<p>This processor insructs incoming vessels on their next goal, such as selecting and navigating to a target berth or departing.</p>
+<h3 id="environment">Environment</h3>
+<p>This package wraps the packages used for interacting with the environment. The current packages are:</p>
+<h5 id="initializers">Initializers</h5>
+<p>Contains one-shot generation processed, used for setting up the simulation</p>
+<h5 id="navigation">Navigation</h5>
+<p>Contains classes used for generating vessel (or tugboats, etc.) paths</p>
+<h5 id="queries">Queries</h5>
+<p>Contains utility functions and classes for fetching entities from the simulation world</p>
+<h3 id="layers">Layers</h3>
+<p>This package contains layers used for the visualization but rendering code should be added via renderer processors.</p>
+<h3 id="model">Model</h3>
+<p>This package contains model-specific code that is <strong>FORBIDDEN</strong> from being used in other parts of the simulator. Instead model specific code should be injected to the consumer classes. For a practical example consider the <code>VesselGeneratorProcessor</code>. This class accepts two functions, one that generates an inter arrival time and one that generates the vessel properties:</p>
+<pre><code class="python">vessel_generator = VesselGeneratorProcessor(
+    world,
+    lambda: np.random.exponential(scale=15.0) * SECONDS_IN_MINUTE,
+    lambda: VesselInfo(...))
+</code></pre>
+
+<p>This allow the <code>VesselGeneratorProcessor</code> to be model-agnostic and reusable.</p>
+<p><strong>Note:</strong> some model-specific code is currently used by framework classes, this should be addressed.</p>
+<h3 id="utils">Utils</h3>
+<p>Package for storing utilities functions and classes. The sub-package <code>timer</code> contains a <code>SimulationTimer</code> class that is used for dispatching future events and accepts a duration in seconds and a <code>TimerScheduler</code> singleton that is used to add timers to the simulation. Timers can be scheduled using the following code:</p>
+<pre><code class="python">timer = SimulationTimer(
+    duration=1000,
+    # The function to be executed after the timer has completed
+    target_function=lambda: ...) 
+
+TimerScheduler.get_instance().schedule(timer)
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>

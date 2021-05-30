@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Required data - PySeidon</title>
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Required data";
+    var mkdocs_page_input_path = "data.md";
+    var mkdocs_page_url = "/pyseidon/data/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> PySeidon</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../features/">Features</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Required data</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#required-data">Required data</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#sections">Sections</a></li>
+        
+            <li><a class="toctree-l3" href="#vessel-tracespaths">Vessel traces/paths</a></li>
+        
+            <li><a class="toctree-l3" href="#vessel-spawn-area">Vessel spawn area</a></li>
+        
+            <li><a class="toctree-l3" href="#berths">Berths</a></li>
+        
+            <li><a class="toctree-l3" href="#terminal-service-times">Terminal service times</a></li>
+        
+            <li><a class="toctree-l3" href="#anchorages">Anchorages</a></li>
+        
+            <li><a class="toctree-l3" href="#tugboat-locations">Tugboat locations</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../usage/">Usage</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">PySeidon</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Required data</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="required-data">Required data</h1>
+<p>A detailed description of the datasets and their formats is presented after this section. The bare minimum data required to run the port simulation is the following (see the example model for further information):</p>
+<ul>
+<li>Definition of different vessel size classes and their parameters as well as different vessel content types. See <code>vessel_class.py</code>, <code>vessel_content_type.py</code>, <code>vessel_type.py</code>, <code>vessel_distribution_factory.py</code> in <code>example_model</code>.</li>
+<li>Polygons of sections of the port. See <code>sections.geojson</code> in <code>example_data</code>.</li>
+<li>Locations and parameters of berths. See <code>berths.csv</code> in <code>example_data</code>.</li>
+<li>The polygons of anchorages. See <code>anchorages.geojson</code> in <code>example_data</code>.</li>
+<li>Spawn areas of vessels. See <code>spawn.geojson</code> in <code>example_data</code>.</li>
+<li>Vessel inter-arrival mean times. See <code>vessel_distribution_factory.py</code> in <code>example_model</code>.</li>
+<li>The vessel service times at berths. See <code>terminal-service-times.csv</code> in <code>example_data</code>.</li>
+<li>Traces (paths) from the sea/ocean to the berths. See <code>traces.geojson</code> in <code>example_data/traces</code>.</li>
+</ul>
+<p>The following sections will explain some requirements in more details</p>
+<h3 id="sections">Sections</h3>
+<p>Sections are defined as a GeoJSON <code>FeatureCollection</code> where each <code>Feature</code> is a polygon defining the section area along with the following properties:</p>
+<ul>
+<li><strong>name</strong>: the section name</li>
+<li><strong>speed</strong>: the minimum and maximum speed (in knots) allowed in this section</li>
+<li>Speed limitations are only applied to vessels, not to tugboats</li>
+</ul>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+  &quot;type&quot;: &quot;FeatureCollection&quot;,
+  &quot;features&quot;: [
+    {
+      &quot;type&quot;: &quot;Feature&quot;,
+      &quot;properties&quot;: {
+        &quot;name&quot;: &quot;section_1&quot;,
+        &quot;speed&quot;: {
+            &quot;class_1&quot;: {
+                &quot;min&quot;: 0.0,
+                &quot;max&quot;: 10.0
+            },
+            &quot;class_2&quot;: {
+                &quot;min&quot;: 0.0,
+                &quot;max&quot;: 10.0
+            }
+        },
+        &quot;allowed_classes&quot;: []
+      },
+      &quot;geometry&quot;: {
+        &quot;type&quot;: &quot;Polygon&quot;,
+        &quot;coordinates&quot;: [
+          [
+            [1.1111231, 11.23421],
+            [1.1111231,11.23421],
+            [1.1111231,11.23421],
+            [1.1111231,11.23421],
+            [1.1111231,11.23421]
+          ]
+        ]
+      }
+    }, ...]
+}
+</code></pre>
+
+<h3 id="vessel-tracespaths">Vessel traces/paths</h3>
+<p>In order to make navigation possible the following kind of paths (in GeoJSON format) must be specified:</p>
+<ul>
+<li>ocean -&gt; berth</li>
+<li>Each berth should have at least one of these paths, if such path does not exist the berth will not be used by the simulator</li>
+<li>ocean -&gt; rendezvous</li>
+<li>Each rendezvous must have at least one path connecting it to the ocean</li>
+<li>rendezvous -&gt; berth</li>
+<li>Usually each rendezvous location concerns a subset of the berths in the port, thus it is only required to connect berths to the rendezvous location(s) used in practice, not to all</li>
+<li>berth -&gt; berth (optional)</li>
+<li>These paths are not currently used but they will be required when shifting (berth -&gt; berth) voyages are implemented</li>
+<li>waiting location -&gt; rendezvous</li>
+<li>These paths are used by tugboats to navigate between waiting locations and rendezvous points. At least one path for each <code>(waiting location, rendezvous)</code> pair is required</li>
+</ul>
+<p>Multiple paths concerning the same pair of elements (e.g. ocean -&gt; berth:54) can be specified. In this case when such a path is needed the simulatior will choose one of the available paths at random.</p>
+<p>As an example, the following GeoJSON snipped describes a path connecting the ocean to berth 129 (described as <code>berth:129</code>). The IDs of berths and rendezvous location must match the ones assigned to berths and rendezvous in their respective data files.</p>
+<p>The GeoJSON file must be a <code>FeatureCollection</code> where each <code>Feature</code> describes a path using a <code>LineString</code> element. The coordinates of the <code>LineString</code> define the path and must include origin and destination.</p>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+    &quot;type&quot;: &quot;FeatureCollection&quot;,
+    &quot;features&quot;: [{
+        &quot;type&quot;: &quot;Feature&quot;,
+        &quot;geometry&quot;: {
+            &quot;type&quot;: &quot;LineString&quot;,
+            &quot;coordinates&quot;: [
+                [1.1111231, 11.23421],
+                [1.1111231,11.23421],
+                [1.1111231,11.23421],
+                [1.1111231,11.23421],
+                [1.1111231,11.23421]
+            ]
+        },
+        &quot;properties&quot;: {
+            &quot;origin&quot;: &quot;ocean&quot;,
+            &quot;destination&quot;: &quot;berth:129&quot;
+        }
+    }, ...]
+}
+</code></pre>
+
+<h3 id="vessel-spawn-area">Vessel spawn area</h3>
+<p>The vessel spawn area defines a polygon where vessels are to be generated in (at a random point withing the polygon). The spawn area is defined by a GeoJSON file with a single polygon (and no properties) as in the example below:</p>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+    &quot;type&quot;: &quot;FeatureCollection&quot;,
+    &quot;features&quot;: [{
+        &quot;type&quot;: &quot;Feature&quot;,
+        &quot;properties&quot;: {},
+        &quot;geometry&quot;: {
+            &quot;type&quot;: &quot;Polygon&quot;,
+            &quot;coordinates&quot;: [
+              [
+                1.1111231,
+                11.23421
+              ],
+              [
+                1.1111231,
+                11.23421
+              ],
+              [
+                1.1111231,
+                11.23421
+              ],
+              [
+                1.1111231,
+                11.23421
+              ],
+              [
+                1.1111231,
+                11.23421
+              ]
+            ]
+        }
+    }]
+}
+</code></pre>
+
+<h3 id="berths">Berths</h3>
+<p>The set of berths in the simulated port must be provided as a csv file with the following columns:</p>
+<ul>
+<li><strong>id</strong>: the berth ID, expressed as an integer</li>
+<li><strong>name</strong>: the berth name</li>
+<li><strong>lat, lon</strong>: coordinates (in WSG 84 format, a.k.a the standard one)</li>
+<li><strong>description</strong>: optional berth description (not used by the simulator)</li>
+<li><strong>type</strong>: the berth type (can be either jetty, berth or quay)</li>
+<li><strong>max_quay_length</strong>: maximum allowed vessel length</li>
+<li><strong>max_depth</strong>: the maximum allowed draught at this berth</li>
+<li><strong>ship_types</strong>: corresponds to the content type the berth can process.</li>
+<li>liquid bulk</li>
+<li>container</li>
+<li>dry bulk</li>
+<li>chemical</li>
+<li><strong>terminal</strong> (string): the terminal that the berth belongs to</li>
+<li>This is used for retrieving the time it takes to service a vessel (see <code>terminal-service-times.csv</code>) since service times are given on a per-terminal basis</li>
+<li><strong>section</strong>: the section of the port this berth is in</li>
+</ul>
+<p>See an exmple below:</p>
+<pre><code class="sh">id,name,lat,lon,type,max_quay_length,max_depth,ship_types,terminal,section
+0,Berth 1,31.52251026784937,1.227441038275049,quay,200,20,2,terminal 2,3
+</code></pre>
+
+<h3 id="terminal-service-times">Terminal service times</h3>
+<p>Terminal service times are defined by a csv file with the following columns:</p>
+<ul>
+<li><strong>terminal</strong>: name of the terminal</li>
+<li><strong>section</strong>: the section this terminal is in (unused?)</li>
+<li><strong>class x</strong>: the mean amount of time (in seconds) it takes for berths in this terminal to process the vessel of class x</li>
+</ul>
+<p>Example:</p>
+<pre><code class="sh">terminal,section,class 1,class 2
+terminal 1,3,12000,12000
+terminal 2,6,17000,20000
+</code></pre>
+
+<h3 id="anchorages">Anchorages</h3>
+<p>Anchorages are defined by a GeoJSON file containing a <code>FeatureCollection</code> where each <code>Feature</code> defines a polygonal area for the anchorage plus the following properties:</p>
+<ul>
+<li><strong>name</strong>: name of the anchorage </li>
+<li><strong>max_draught</strong>: maximum draught (meters) of a ship for this anchorage</li>
+<li><strong>id</strong>: id of the anchorage (unused)</li>
+</ul>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+  &quot;type&quot;: &quot;FeatureCollection&quot;,
+  &quot;features&quot;: [
+    {
+      &quot;type&quot;: &quot;Feature&quot;,
+      &quot;properties&quot;: {
+        &quot;name&quot;: &quot;1&quot;,
+        &quot;max_draught&quot;: 20,
+        &quot;id&quot;: 0
+      },
+      &quot;geometry&quot;: {
+        &quot;type&quot;: &quot;Polygon&quot;,
+        &quot;coordinates&quot;: [
+            [
+              1.1111231,
+              11.23421
+            ],
+            [
+              1.1111231,
+              11.23421
+            ],
+            [
+              1.1111231,
+              11.23421
+            ],
+            [
+              1.1111231,
+              11.23421
+            ],
+            [
+              1.1111231,
+              11.23421
+            ]
+        ]
+      }
+    }, ...]
+}
+</code></pre>
+
+<p>The decision rules for allocating vessels to anchorages are defined in the model.</p>
+<h3 id="tugboat-locations">Tugboat locations</h3>
+<h4 id="rendezvous">Rendezvous</h4>
+<p>The rendezvous location(s) are defined by a GeoJSON file with a <code>FeatureCollection</code> where each <code>Feature</code> represents a waiting location as a <code>Point</code> with the following properties:</p>
+<ul>
+<li><strong>id:</strong> the id of the waiting location</li>
+<li><strong>vessel_final_destination</strong>: the destination sections for which this rendezvous point is used or, in other words: if a vessel needs to reach (following the example below) sections 11, 12 or 13 and needs tugging it will have to pass through this rendezvous point</li>
+</ul>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+  &quot;type&quot;: &quot;FeatureCollection&quot;,
+  &quot;features&quot;: [
+    {
+      &quot;type&quot;: &quot;Feature&quot;,
+      &quot;properties&quot;: {
+        &quot;id&quot;: &quot;1&quot;,
+        &quot;vessel_final_destination&quot;: [11, 12, 13]
+      },
+      &quot;geometry&quot;: {
+        &quot;type&quot;: &quot;Point&quot;,
+        &quot;coordinates&quot;: [
+          1.1111231,
+          11.23421
+        ]
+      }
+    }, ...]
+}
+</code></pre>
+
+<h4 id="waiting-locations">Waiting locations</h4>
+<p>The tugboats waiting location(s) are defined by a GeoJSON file with a <code>FeatureCollection</code> where each <code>Feature</code> represents a waiting location as a <code>Polygon</code> with the following properties:</p>
+<ul>
+<li><strong>id</strong>: id of the tugboat waiting location </li>
+<li><strong>name</strong>: name of the tugboat waiting location</li>
+<li><strong>companies</strong>: the companies that have tugboats standing by at this location</li>
+<li><strong>tug_per_company</strong>: number of tugboats per company at this waiting location</li>
+<li>The length of this array must match the length of the <code>companies</code> array</li>
+</ul>
+<p>To simulate a single tugboat company simply specify an one-element array for both the <code>companies</code> and the <code>tugs_per_company</code> properties.</p>
+<p><em>Note that the numbers in the example are random.</em></p>
+<pre><code class="json">{
+  &quot;type&quot;: &quot;FeatureCollection&quot;,
+  &quot;features&quot;: [{
+      &quot;type&quot;: &quot;Feature&quot;,
+      &quot;properties&quot;: {
+          &quot;id&quot;: 11,
+          &quot;tugboats_count&quot;: 8,
+          &quot;name&quot;: &quot;Tug 1&quot;,
+          &quot;companies&quot;: [&quot;Company 1&quot;, &quot;Company 2&quot;, &quot;Company 3&quot;],
+          &quot;tugs_per_company&quot;: [6, 4, 1]
+      },
+      &quot;geometry&quot;: {
+          &quot;type&quot;: &quot;Polygon&quot;,
+          &quot;coordinates&quot;: [
+                [
+                  [
+                    1.2222222,
+                    11.2222223
+                  ],
+                  [
+                    1.2222322,
+                    11.2222222
+                  ],
+                  [
+                    1.1111231,
+                    11.23421
+                  ],
+                  [
+                    1.1111231,
+                    11.23421
+                  ],
+                  [
+                    1.1111231,
+                    11.23421
+                  ],
+                  [
+                    1.1111231,
+                    11.23421
+                  ],
+                  [
+                    1.1111231,
+                    11.23421
+                  ]
+                ]
+            ]
+          }
+      }, ...]
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../usage/" class="btn btn-neutral float-right" title="Usage">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../features/" class="btn btn-neutral" title="Features"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../features/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../usage/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
