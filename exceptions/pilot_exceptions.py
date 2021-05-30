@@ -1,0 +1,2 @@
+class NoAvailablePilotException(Exception):
+    pass

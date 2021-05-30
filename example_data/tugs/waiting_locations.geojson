@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "tugboats_count": 4,
+        "name": "example_tug_location",
+        "companies": ["Example Tug Company 1", "Example Tug Company 2"],
+        "pilots_per_company": [4]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.285440444946289,
+              51.304594092252636
+            ],
+            [
+              4.284088611602783,
+              51.30330624290803
+            ],
+            [
+              4.286191463470459,
+              51.30242082552115
+            ],
+            [
+              4.287478923797607,
+              51.30346722605236
+            ],
+            [
+              4.285440444946289,
+              51.304594092252636
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

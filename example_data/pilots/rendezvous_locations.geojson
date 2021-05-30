@@ -1,0 +1,21 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "id": 1,
+            "usage": "arrival",
+            "vessel_class": ["1", "2"],
+            "pilot_access": "ship"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              4.142532348632812,
+              51.38249533118676
+            ]
+          }
+        }
+    ]
+}

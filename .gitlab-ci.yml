@@ -1,0 +1,11 @@
+pages:
+    image: python:3.9
+    before_script:
+     - pip install mkdocs https://github.com/mitya57/python-markdown-math/archive/master.zip
+    script:
+     - mkdocs build
+     - mv site public
+    artifacts:
+        paths:
+         - public
+

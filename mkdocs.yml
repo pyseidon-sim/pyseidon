@@ -1,0 +1,14 @@
+site_name: PySeidon
+
+site_description: 'An extendable and modular software for maritime port simulation.'
+
+site_url: https://pyseidon.gitlab.io/pyseidon
+
+nav:
+    - Home: index.md
+    - Features: features.md
+    - Required data: data.md
+    - Usage: usage.md
+
+theme: readthedocs
+

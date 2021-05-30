@@ -1,0 +1,46 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+          "type": "Feature",
+          "properties": {
+            "id": 1,
+            "pilots_count": 3,
+            "name": "example_pilot_location",
+            "companies": ["Example Pilot Company"],
+            "pilots_per_company": [3]
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  4.24945592880249,
+                  51.360580567623714
+                ],
+                [
+                  4.249992370605469,
+                  51.35933448662797
+                ],
+                [
+                  4.251408576965332,
+                  51.359910635817855
+                ],
+                [
+                  4.250442981719971,
+                  51.36142466774798
+                ],
+                [
+                  4.249026775360107,
+                  51.361116506013474
+                ],
+                [
+                  4.24945592880249,
+                  51.360580567623714
+                ]
+              ]
+            ]
+          }
+        }
+    ]
+}

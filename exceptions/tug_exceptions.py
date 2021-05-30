@@ -1,0 +1,2 @@
+class NotEnoughAvailableTugsException(Exception):
+    pass

@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties":
+	  {
+          "id": "1",
+		  "vessel_final_destination": [3]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.2428,
+          51.3518
+         ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties":
+	  {
+          "id": "2",
+		  "vessel_final_destination": [7]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.2761,
+          51.3085
+         ]
+      }
+    }
+  ]
+}
