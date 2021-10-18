@@ -8,7 +8,7 @@ This software uses [entity-component system](https://en.wikipedia.org/wiki/Entit
 
 ## Overview
 
-PySeidon was primarily designed for port scenario testing, but can be used for a variety of other tasks. Software can be adapted to simulate any maritime port provided that the [required data is available](https://dke-2019-2020-marble-port-of-rotterdam.gitlab.io/harbour-simulation/data/).
+PySeidon was primarily designed for port scenario testing, but can be used for a variety of other tasks. Software can be adapted to simulate any maritime port provided that the [required data is available](https://pyseidon-sim.github.io/pyseidon/data/).
 The simulator can be tested with different factors, such as:
 - New/different anchorage location
 - Different number of tugboat/pilots available
