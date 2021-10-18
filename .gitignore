@@ -141,8 +141,6 @@ traces
 .idea/
 .vscode/
 
-# CSV output files
-*.csv
-
 export
 diagrams/*
+.DS_Store
