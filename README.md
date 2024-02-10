@@ -2,7 +2,7 @@
 
 <img src="docs/images/preview.jpg" alt="Image of the simulation software" width="1000"/>
 
-Extendable and modular software for maritime port simulation.
+Extendable and modular software for maritime port simulation. Read our paper: https://dl.acm.org/doi/abs/10.1145/3474963.3474986.
 
 This software uses [entity-component system](https://en.wikipedia.org/wiki/Entity_component_system) approach making it highly customizable for various end goals and easily built upon.
 
