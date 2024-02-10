@@ -1,38 +1,30 @@
-import pytest
 import numpy as np
+import pytest
 
 from components import VesselPath
 from environment.navigation.sections import Section
-from exceptions import PathTerminatedException, NoPathException
+from exceptions import NoPathException, PathTerminatedException
 
 
 @pytest.fixture()
 def vessel_path():
-    section_shape = [
-        [10, 10],
-        [15, 10],
-        [15, 5],
-        [10, 5],
-        [10, 10]
-    ]
+    section_shape = [[10, 10], [15, 10], [15, 5], [10, 5], [10, 10]]
 
-    section_a = Section(
-        name="A",
-        shape=section_shape)
-    section_b = Section(
-        name="B",
-        shape=section_shape)
+    section_a = Section(name="A", shape=section_shape)
+    section_b = Section(name="B", shape=section_shape)
 
     # Path with sections AAABB
     point_sections = [section_a] * 3 + [section_b] * 2
 
     path = VesselPath()
-    path.set_path({
-        "x": [5, 10, 15, 20, 25],
-        "y": [5, 10, 15, 20, 25],
-        "point_sections": point_sections,
-        "crossed_sections": set(point_sections)
-    })
+    path.set_path(
+        {
+            "x": [5, 10, 15, 20, 25],
+            "y": [5, 10, 15, 20, 25],
+            "point_sections": point_sections,
+            "crossed_sections": set(point_sections),
+        }
+    )
 
     return path
 
@@ -50,7 +42,9 @@ def test_advance(vessel_path):
 
             assert len(next_node) == 2
 
-            assert next_section.name == vessel_path.path["point_sections"][path_idx].name
+            assert (
+                next_section.name == vessel_path.path["point_sections"][path_idx].name
+            )
             assert next_node[0] == vessel_path.path["x"][path_idx]
             assert next_node[1] == vessel_path.path["x"][path_idx]
     except PathTerminatedException as _:
@@ -75,7 +69,7 @@ def test_has_current_route(vessel_path):
 
     # No path was generated, so no route should exist
     assert not empty_path.has_current_route()
-    
+
     # The fixture vessel path was initialized with a route
     assert vessel_path.has_current_route()
 

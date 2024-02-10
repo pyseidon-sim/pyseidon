@@ -1,4 +1,5 @@
 from fysom import Fysom
+
 from .states import PilotState
 
 
@@ -27,7 +28,9 @@ class PilotStateMachine:
         return self.destination_vessel_id
 
     def go_to_rendezvous(self, vessel_id, rendezvous_id):
-        assert self.destination_vessel_id is None, "The pilot already has an assigned vessel!"
+        assert (
+            self.destination_vessel_id is None
+        ), "The pilot already has an assigned vessel!"
         assert rendezvous_id is not None, "A pilot rendezvous id is needed!"
 
         self.destination_vessel_id = vessel_id
@@ -40,7 +43,9 @@ class PilotStateMachine:
         self.fsm.arrive_at_rendezvous()
 
     def go_to_berth(self, vessel_id, berth_id):
-        assert self.destination_vessel_id is None, "The pilot already has an assigned vessel!"
+        assert (
+            self.destination_vessel_id is None
+        ), "The pilot already has an assigned vessel!"
         assert berth_id is not None, "A berth id is needed!"
 
         self.destination_vessel_id = vessel_id
@@ -53,7 +58,9 @@ class PilotStateMachine:
         self.fsm.arrive_at_berth()
 
     def deliver_pilot(self, waiting_location_id):
-        assert self.waiting_location_id is None, "The pilot already has an assigned waiting location!"
+        assert (
+            self.waiting_location_id is None
+        ), "The pilot already has an assigned waiting location!"
         assert waiting_location_id is not None, "A pilot waiting location id is needed!"
 
         self.waiting_location_id = waiting_location_id

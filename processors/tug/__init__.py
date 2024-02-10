@@ -1,2 +1,2 @@
-from .movement import TugMovementProcessor
 from .goal_formulator import TugGoalFormulatorProcessor
+from .movement import TugMovementProcessor

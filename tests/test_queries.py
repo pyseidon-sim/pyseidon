@@ -1,21 +1,21 @@
 import esper
 import pytest
 
-from components.fsm.states import BerthState
-from environment.queries import fetch_vessels, BerthList
 from components.fsm import VesselStateMachine
-from .constants import MOCK_BERTHS_FILENAME, MOCK_BERTHS_COUNT
+from components.fsm.states import BerthState
 from environment.initializers import BerthsInitializer
-from .fixtures.berth_service_time import MockBerthServiceDistributionFactory
-from .test_ship_generator import vessels_world
-from .fixtures.vessel_ctype import VesselContentType
-
+from environment.queries import BerthList, fetch_vessels
 from tests.fixtures import berths_sim_world
+
+from .constants import MOCK_BERTHS_COUNT, MOCK_BERTHS_FILENAME
+from .fixtures.berth_service_time import MockBerthServiceDistributionFactory
+from .fixtures.vessel_ctype import VesselContentType
+from .test_ship_generator import vessels_world
 
 
 def test_fetch_berths(berths_sim_world):
     """
-        Verifies that all the berths are fetched correctly
+    Verifies that all the berths are fetched correctly
     """
     world, berths_initializer = berths_sim_world
     berths_initializer.create_berths()
@@ -26,12 +26,11 @@ def test_fetch_berths(berths_sim_world):
 
 def test_fetch_available_berths(berths_sim_world):
     """
-        Books and frees a set of berths, checking if the correct number
-        of available berths is returned
+    Books and frees a set of berths, checking if the correct number
+    of available berths is returned
     """
     world, berths_initializer = berths_sim_world
     berths_initializer.create_berths()
-
 
     # No berths should be booked at the start of the simulation
     available_query = BerthList(world=world).filter_by_available(BerthState.AVAILABLE)
@@ -52,7 +51,7 @@ def test_fetch_available_berths(berths_sim_world):
     # Make sure the correct berth is missing
     for _, (_, info, _) in available_berths:
         assert info.name != berth_info.name
-    
+
     # Free the booked berth. This is a 'Private API' call and
     # should be replaced by something nicer if possible
     fsm.fsm.process_boat()
@@ -65,8 +64,9 @@ def test_fetch_available_berths(berths_sim_world):
     _, target_berth_data = BerthList(world=world)[0]
     _, target_berth_info, _ = target_berth_data
 
-    _, fetched_berth_data = BerthList(
-        world=world).filter_by_ids([target_berth_info.id])[0]
+    _, fetched_berth_data = BerthList(world=world).filter_by_ids(
+        [target_berth_info.id]
+    )[0]
     _, fetched_berth_info, _ = fetched_berth_data
 
     assert fetched_berth_info.id == target_berth_info.id

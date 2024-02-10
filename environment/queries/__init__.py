@@ -2,14 +2,15 @@
     This module contains several utility functions to fetch entities
     from the simulation world
 """
-from components.fsm import VesselStateMachine, TugStateMachine, \
-    PilotStateMachine
-from components import Position, Velocity, VesselPath, \
-    Course, VesselInfo, TugInfo, PilotInfo, FrameCounter
+
+from components import (Course, FrameCounter, PilotInfo, Position, TugInfo,
+                        Velocity, VesselInfo, VesselPath)
+from components.fsm import (PilotStateMachine, TugStateMachine,
+                            VesselStateMachine)
 from utils.timer import SimulationTimer
 
-from .berth_list import BerthList
 from .anchorage_list import AnchorageList
+from .berth_list import BerthList
 from .waiting_locations import WaitingLocationList
 
 
@@ -18,15 +19,27 @@ def fetch_timers(world):
 
 
 def fetch_vessels(world):
-    return world.get_components(Position, FrameCounter, Course, Velocity, VesselPath, VesselStateMachine, VesselInfo)
+    return world.get_components(
+        Position,
+        FrameCounter,
+        Course,
+        Velocity,
+        VesselPath,
+        VesselStateMachine,
+        VesselInfo,
+    )
 
 
 def fetch_tugs(world):
-    return world.get_components(Position, FrameCounter, Course, Velocity, VesselPath, TugStateMachine, TugInfo)
+    return world.get_components(
+        Position, FrameCounter, Course, Velocity, VesselPath, TugStateMachine, TugInfo
+    )
 
 
 def fetch_pilots(world):
-    return world.get_components(Position, Course, Velocity, VesselPath, PilotStateMachine, PilotInfo)
+    return world.get_components(
+        Position, Course, Velocity, VesselPath, PilotStateMachine, PilotInfo
+    )
 
 
 def berth_info_by_id(world, berth_id):

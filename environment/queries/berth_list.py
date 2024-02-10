@@ -1,10 +1,11 @@
-from components import Position, BerthInfo
+from components import BerthInfo, Position
 from components.fsm import BerthStateMachine
 from components.fsm.states import BerthState
 
 
 class BerthList:
-    """Class that handles the retrieval of Berth entities with different sorting methods. """
+    """Class that handles the retrieval of Berth entities with different sorting methods."""
+
     def __init__(self, world=None, data=None):
         if world is None and data is None:
             raise ValueError("Either a world or an array must be given")
@@ -16,7 +17,7 @@ class BerthList:
             self.berths = world.get_components(Position, BerthInfo, BerthStateMachine)
         else:
             self.berths = data
-    
+
     def len(self):
         return len(self.berths)
 
@@ -34,7 +35,7 @@ class BerthList:
         self.index += 1
 
         return berth
-    
+
     def filter_by_available(self, available: BerthState):
         if available is None:
             raise ValueError("Availability must be non null!")
@@ -52,11 +53,11 @@ class BerthList:
             raise ValueError("Vessel types must be a list")
 
         allowed_berths = []
-        
+
         for d, (pos, berth_info, fsm) in self.berths:
             if berth_info.allowed_vessel_content_type() in vessel_types:
                 allowed_berths.append([d, (pos, berth_info, fsm)])
-        
+
         return BerthList(data=allowed_berths)
 
     def filter_by_ids(self, ids):

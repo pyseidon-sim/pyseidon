@@ -4,7 +4,7 @@ MOCK_SECTIONS_FILENAME = "tests/data/sections.geojson"
 
 MOCK_TRACES_FOLDERS = {
     "valid": "tests/data/traces/valid",
-    "invalid": "tests/data/traces/invalid"
+    "invalid": "tests/data/traces/invalid",
 }
 
 MOCK_SPAWN_FILENAME = "tests/data/spawn.geojson"

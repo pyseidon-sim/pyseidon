@@ -1,7 +1,7 @@
 import pytest
 
-from components.fsm.states import VesselState, BerthState
-from components.fsm import VesselStateMachine, BerthStateMachine
+from components.fsm import BerthStateMachine, VesselStateMachine
+from components.fsm.states import BerthState, VesselState
 
 from .constants import SECONDS_IN_DAY
 from .fixtures import world_and_timer_processor_fixture

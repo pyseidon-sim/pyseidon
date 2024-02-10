@@ -1,2 +1,2 @@
-from .movement import PilotMovementProcessor
 from .goal_formulator import PilotGoalFormulatorProcessor
+from .movement import PilotMovementProcessor

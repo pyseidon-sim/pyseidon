@@ -1,46 +1,49 @@
 import random
-
 from collections import namedtuple
 
-from components.fsm import VesselStateMachine, SpeedStateMachine, NULL_SPEED_MODEL
-from components import Position, Course, Velocity, VesselPath, FrameCounter
-from utils.shapes import random_point_in_polygon
-
+from components import Course, FrameCounter, Position, Velocity, VesselPath
+from components.fsm import (NULL_SPEED_MODEL, SpeedStateMachine,
+                            VesselStateMachine)
 from processors.generators import VesselGeneratorProcessor
+from utils.shapes import random_point_in_polygon
 
 
 class FixedVesselGeneratorProcessor(VesselGeneratorProcessor):
     """
-        Generates vessels based on an inter-arrival time and vessel
-        properties generators, to be supplied as functions.
+    Generates vessels based on an inter-arrival time and vessel
+    properties generators, to be supplied as functions.
     """
+
     def __init__(
-            self,
-            world,
-            inter_arrival_time_sampler,
-            vessel_info_sampler,
-            spawn_area_filename,
-            run_info,
-            tug_company_designator=None,
-            vessel_logger=None,
-            default_speed_knots=15,
-            speed_model_probabilities=NULL_SPEED_MODEL,
-            anomalous_vessels_percent=0):
+        self,
+        world,
+        inter_arrival_time_sampler,
+        vessel_info_sampler,
+        spawn_area_filename,
+        run_info,
+        tug_company_designator=None,
+        vessel_logger=None,
+        default_speed_knots=15,
+        speed_model_probabilities=NULL_SPEED_MODEL,
+        anomalous_vessels_percent=0,
+    ):
         """
-            :param world: Esper world object
-            :param inter_arrival_time_sampler: a function that samples an inter-arrival time for vessels
-            :param vessel_info_sampler: a function that samples vessel_info
-            :param spawn_area_filename: the name of a geojson file that denotes a spawn area for vessels
-            :param run_info: RunInfo singleton object that gives access to the simulation clock
-            :param tug_company_designator: a function that assigns tugboats based on some logic
-            :param vessel_logger: VesselEventLogger singleton that is logging events about vessels
-            :param default_speed_knots: The default velocity of a vessel in knots
-            :param speed_model_probabilities: The Markov Model depicting state of vessels velocities
-             (used for generating velocity anomalies)
-            :param anomalous_vessels_percent: the percentage of vessels with the anomalous speed model
+        :param world: Esper world object
+        :param inter_arrival_time_sampler: a function that samples an inter-arrival time for vessels
+        :param vessel_info_sampler: a function that samples vessel_info
+        :param spawn_area_filename: the name of a geojson file that denotes a spawn area for vessels
+        :param run_info: RunInfo singleton object that gives access to the simulation clock
+        :param tug_company_designator: a function that assigns tugboats based on some logic
+        :param vessel_logger: VesselEventLogger singleton that is logging events about vessels
+        :param default_speed_knots: The default velocity of a vessel in knots
+        :param speed_model_probabilities: The Markov Model depicting state of vessels velocities
+         (used for generating velocity anomalies)
+        :param anomalous_vessels_percent: the percentage of vessels with the anomalous speed model
         """
         assert world is not None, "A world is required!"
-        assert inter_arrival_time_sampler is not None, "An inter-arrival distribution is required!"
+        assert (
+            inter_arrival_time_sampler is not None
+        ), "An inter-arrival distribution is required!"
         assert vessel_info_sampler is not None, "A vessel info sampler is required!"
 
         self.world = world
@@ -54,7 +57,9 @@ class FixedVesselGeneratorProcessor(VesselGeneratorProcessor):
         self.speed_model_probabilities = speed_model_probabilities
         self.anomalous_vessels_percent = anomalous_vessels_percent
 
-        self.scheduled_vessels = self._generate_vessels_for_fixed_interval(run_info.end_timestamp())
+        self.scheduled_vessels = self._generate_vessels_for_fixed_interval(
+            run_info.end_timestamp()
+        )
 
     def _process(self, dt):
         generated_count = 0
@@ -78,7 +83,9 @@ class FixedVesselGeneratorProcessor(VesselGeneratorProcessor):
         current_time = 0
         vessels = []
 
-        GeneratedVessel = namedtuple('GeneratedVessel', ['time', 'vessel_info', 'fsm', 'speed_fsm'])
+        GeneratedVessel = namedtuple(
+            "GeneratedVessel", ["time", "vessel_info", "fsm", "speed_fsm"]
+        )
 
         while current_time < end_time:
             inter_arrival_time = self.inter_arrival_time_sampler()
@@ -92,18 +99,24 @@ class FixedVesselGeneratorProcessor(VesselGeneratorProcessor):
                 speed_state_machine = SpeedStateMachine(
                     double_p=self.speed_model_probabilities["double"],
                     halve_p=self.speed_model_probabilities["half"],
-                    normal_p=self.speed_model_probabilities["reset"])
+                    normal_p=self.speed_model_probabilities["reset"],
+                )
             else:
                 speed_state_machine = None
 
             if self.tug_company_designator is not None:
-                vessel_state_machine.tug_company = self.tug_company_designator(vessel_state_machine)
+                vessel_state_machine.tug_company = self.tug_company_designator(
+                    vessel_state_machine
+                )
 
-            vessels.append(GeneratedVessel(
-                time=current_time,
-                vessel_info=vessel_info,
-                fsm=vessel_state_machine,
-                speed_fsm=speed_state_machine))
+            vessels.append(
+                GeneratedVessel(
+                    time=current_time,
+                    vessel_info=vessel_info,
+                    fsm=vessel_state_machine,
+                    speed_fsm=speed_state_machine,
+                )
+            )
 
         return vessels
 
@@ -127,15 +140,10 @@ class FixedVesselGeneratorProcessor(VesselGeneratorProcessor):
 
         vessel_state_machine.generate()
         vessel_state_machine.fsm.onchangestate = lambda x: self._log_vessel_event(
-            vessel,
-            vessel_info,
-            vessel_state_machine,
-            velocity,
-            f"{x.src} → {x.dst}")
+            vessel, vessel_info, vessel_state_machine, velocity, f"{x.src} → {x.dst}"
+        )
 
         self.world.add_component(vessel, vessel_info)
         self.world.add_component(vessel, VesselPath())
 
-        self.world.add_component(
-            vessel,
-            vessel_state_machine)
+        self.world.add_component(vessel, vessel_state_machine)

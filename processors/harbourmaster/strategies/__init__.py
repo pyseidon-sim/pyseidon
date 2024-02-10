@@ -1,2 +1,2 @@
-from .vessel import DefaultVesselStrategy
 from .tug import DefaultTugStrategy
+from .vessel import DefaultVesselStrategy

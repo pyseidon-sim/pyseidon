@@ -1,5 +1,6 @@
 class Course:
     """Course of a vessel"""
+
     def __init__(self, course=0):
         self.course = course
         self.prev_course = 0

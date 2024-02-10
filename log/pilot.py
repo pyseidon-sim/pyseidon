@@ -1,10 +1,10 @@
 import csv
-from colored import fg, attr
-
 from datetime import datetime
-from log.events.pilot import PilotEvent
+
+from colored import attr, fg
 
 from environment import RunInfo
+from log.events.pilot import PilotEvent
 
 
 class PilotEventLogger:
@@ -15,7 +15,7 @@ class PilotEventLogger:
         if PilotEventLogger.__instance is None:
             PilotEventLogger()
 
-        return PilotEventLogger.__instance 
+        return PilotEventLogger.__instance
 
     def __init__(self):
         """Private constructor."""
@@ -23,7 +23,7 @@ class PilotEventLogger:
             raise Exception("This class is a singleton!")
         else:
             PilotEventLogger.__instance = self
-            
+
             self._verbose = False
             self.pilot_logs = {}
 
@@ -37,10 +37,7 @@ class PilotEventLogger:
 
     def log_event(self, ent, pilot_info, event: PilotEvent):
         if str(ent) not in self.pilot_logs:
-            self.pilot_logs[str(ent)] = {
-                "name": f"Pilot {ent}",
-                "events": []
-            }
+            self.pilot_logs[str(ent)] = {"name": f"Pilot {ent}", "events": []}
 
         self.pilot_logs[str(ent)]["events"].append(event)
 
@@ -54,8 +51,8 @@ class PilotEventLogger:
             out_name = out_name + " " * (32 - len(out_name))
 
         event_log = event.to_log_string(
-            RunInfo.get_instance().start_timestamp(),
-            colored=True)
+            RunInfo.get_instance().start_timestamp(), colored=True
+        )
 
         formatted_date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         event_string = f"[{formatted_date} : Pilots] "
@@ -66,10 +63,7 @@ class PilotEventLogger:
     def log_to_csv(self, out_filename):
         """Exports the logged events as a csv file."""
         with open(out_filename, "w") as out_file:
-            csv_writer = csv.writer(
-                out_file,
-                delimiter=";",
-                quoting=csv.QUOTE_MINIMAL)
+            csv_writer = csv.writer(out_file, delimiter=";", quoting=csv.QUOTE_MINIMAL)
 
             # Add header
             csv_writer.writerow(["pilot_id"] + PilotEvent.csv_header())
@@ -79,4 +73,5 @@ class PilotEventLogger:
 
                 for e in events:
                     csv_writer.writerow(
-                        [ent] + e.to_list(RunInfo.get_instance().start_timestamp()))
+                        [ent] + e.to_list(RunInfo.get_instance().start_timestamp())
+                    )

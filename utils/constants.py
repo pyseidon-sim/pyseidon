@@ -1,4 +1,5 @@
 """List of constants used in the simulator"""
+
 SECONDS_IN_MINUTE = 60
 KNOTS_TO_METERS_SEC = 0.51444
 METERS_TO_COORDS = 0.000009009

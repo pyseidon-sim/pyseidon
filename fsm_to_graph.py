@@ -1,10 +1,9 @@
-import os
 import argparse
-
+import os
 from enum import Enum
 
-from components.fsm.states import TugState, VesselState, \
-    AnchorageState, BerthState, PilotState
+from components.fsm.states import (AnchorageState, BerthState, PilotState,
+                                   TugState, VesselState)
 
 # To create a png file from the .dot file run
 # dot -Tpng file.dot > file.png
@@ -26,21 +25,25 @@ def generate_graph(state_cls: Enum):
         readable_state = state.replace("_", " ").capitalize()
 
         if state == initial_state:
-            graphviz_code = f"{graphviz_code}\n\t{state}[label=\"{readable_state}\", shape=doublecircle];"
+            graphviz_code = f'{graphviz_code}\n\t{state}[label="{readable_state}", shape=doublecircle];'
         else:
-            graphviz_code = f"{graphviz_code}\n\t{state}[label=\"{readable_state}\"];"
+            graphviz_code = f'{graphviz_code}\n\t{state}[label="{readable_state}"];'
 
     graphviz_code = f"{graphviz_code}\n"
 
     for transition in state_cls.get_state_graph()["events"]:
         src, dst, name = transition["src"], transition["dst"], transition["name"]
 
-        if type(src) != list: src = [src]
-        if type(dst) != list: dst = [dst]
+        if type(src) != list:
+            src = [src]
+        if type(dst) != list:
+            dst = [dst]
 
         for src_state in src:
             for dst_state in dst:
-                graphviz_code = f"{graphviz_code}\n\t{src_state} -> {dst_state}[label=\"{name}\"];"
+                graphviz_code = (
+                    f'{graphviz_code}\n\t{src_state} -> {dst_state}[label="{name}"];'
+                )
 
     graphviz_code += "\n}"
     return graphviz_code

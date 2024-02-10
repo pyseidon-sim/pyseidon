@@ -4,6 +4,7 @@ from utils.shapes import geojson_to_points
 
 class RendezvousRenderer(BaseRenderer):
     """Renders rendezvous areas on a Simulation Layer using geoplotlib"""
+
     def __init__(self, geojson_filename, rendezvous_color=None):
         if rendezvous_color is None:
             # Default color

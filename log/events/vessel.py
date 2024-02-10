@@ -1,9 +1,12 @@
 from datetime import datetime
-from colored import fg, attr
+
+from colored import attr, fg
 
 
 class VesselEvent:
-    def __init__(self, event_type, vessel_info, velocity, pilot, tug, berth, anchorage, timestamp):
+    def __init__(
+        self, event_type, vessel_info, velocity, pilot, tug, berth, anchorage, timestamp
+    ):
         if timestamp is None:
             raise ValueError("The timestamp cannot be null!")
 
@@ -65,7 +68,7 @@ class VesselEvent:
             self.tug,
             self.berth,
             self.anchorage,
-            event_type
+            event_type,
         ]
 
     @classmethod
@@ -86,5 +89,5 @@ class VesselEvent:
             "tug_id",
             "berth_id",
             "anchorage_id",
-            "event"
+            "event",
         ]

@@ -3,10 +3,11 @@ import numbers
 
 class Velocity:
     """Contains information on the 1D velocity of an entity"""
+
     def __init__(self, velocity: float):
         self._validate_velocity(velocity)
         self._velocity = velocity
-    
+
     @property
     def velocity(self):
         return self._velocity

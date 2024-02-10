@@ -3,61 +3,63 @@
     This file initializes all relevant components, connects them together, and then starts the simulation.
 """
 
-import os
-import sys
+import argparse
 import csv
 import json
-import time
-import esper
-import signal
+import os
 import pickle
-import argparse
-import geoplotlib
 import random
-import numpy as np
-
+import signal
+import sys
+import time
 from enum import Enum
-from layers import SimulationLayer
 
-from example.example_model.vessel_type import VesselType
-from example.example_model.vessel_class import VesselClass
-from example.example_model.vessel_content_type import VesselContentType
-from example.example_model.anchorages import assign_anchorage
-from example.example_model.berth_designator import berths_allocation_designator
-from example.example_model.vessel_distribution_factory import VesselDistributionFactory
-from example.example_model.berth_service_distribution_factory import BerthServiceDistributionFactory
-from example.example_model.tugboat_company_logic import DefaultTugCompanyStrategy
-
-from processors.generators import VesselGeneratorProcessor, FixedVesselGeneratorProcessor
-from processors.rendering import VesselRenderer, AnchorageRenderer, \
-    BerthRenderer, TugsRenderer, RendezvousRenderer, OperationsRenderer, PilotsRenderer
-from processors.harbourmaster import HarbourMasterProcessor
-from processors.vessel import VesselGoalFormulatorProcessor, VesselMovementProcessor
-from processors.tug import TugMovementProcessor, TugGoalFormulatorProcessor
-from processors.pilot import PilotGoalFormulatorProcessor, PilotMovementProcessor
-from processors.core import TimerProcessor
-from processors.harbourmaster.strategies import DefaultVesselStrategy, DefaultTugStrategy
-from processors.ais import AISVesselLogProcessor, SectionsLogProcessor, AISPilotLogProcessor, AISTugLogProcessor
-
-from environment.navigation import PathFinder
-from environment.navigation.sections import SectionManager
-from environment.initializers import BerthsInitializer, \
-    AnchoragesInitializer, PilotsInitializer, TugsInitializer
-
-from components.fsm import NULL_SPEED_MODEL
-
-from utils.timer import TimerScheduler
-
-from log.vessel import VesselEventLogger
-from log.pilot import PilotEventLogger
-from log.tug import TugEventLogger
-
-from environment import RunInfo
-from environment.messaging import MessageBroker
+import esper
+import geoplotlib
+import numpy as np
+from shapely.geometry import Polygon
 
 from anomalies import TugMalfunctionAnomaly
-
-from shapely.geometry import Polygon
+from components.fsm import NULL_SPEED_MODEL
+from environment import RunInfo
+from environment.initializers import (AnchoragesInitializer, BerthsInitializer,
+                                      PilotsInitializer, TugsInitializer)
+from environment.messaging import MessageBroker
+from environment.navigation import PathFinder
+from environment.navigation.sections import SectionManager
+from example.example_model.anchorages import assign_anchorage
+from example.example_model.berth_designator import berths_allocation_designator
+from example.example_model.berth_service_distribution_factory import \
+    BerthServiceDistributionFactory
+from example.example_model.tugboat_company_logic import \
+    DefaultTugCompanyStrategy
+from example.example_model.vessel_class import VesselClass
+from example.example_model.vessel_content_type import VesselContentType
+from example.example_model.vessel_distribution_factory import \
+    VesselDistributionFactory
+from example.example_model.vessel_type import VesselType
+from layers import SimulationLayer
+from log.pilot import PilotEventLogger
+from log.tug import TugEventLogger
+from log.vessel import VesselEventLogger
+from processors.ais import (AISPilotLogProcessor, AISTugLogProcessor,
+                            AISVesselLogProcessor, SectionsLogProcessor)
+from processors.core import TimerProcessor
+from processors.generators import (FixedVesselGeneratorProcessor,
+                                   VesselGeneratorProcessor)
+from processors.harbourmaster import HarbourMasterProcessor
+from processors.harbourmaster.strategies import (DefaultTugStrategy,
+                                                 DefaultVesselStrategy)
+from processors.pilot import (PilotGoalFormulatorProcessor,
+                              PilotMovementProcessor)
+from processors.rendering import (AnchorageRenderer, BerthRenderer,
+                                  OperationsRenderer, PilotsRenderer,
+                                  RendezvousRenderer, TugsRenderer,
+                                  VesselRenderer)
+from processors.tug import TugGoalFormulatorProcessor, TugMovementProcessor
+from processors.vessel import (VesselGoalFormulatorProcessor,
+                               VesselMovementProcessor)
+from utils.timer import TimerScheduler
 
 
 def init_parser():
@@ -65,29 +67,77 @@ def init_parser():
 
     parser.add_argument("--out", required=True, help="Output directory", type=str)
     parser.add_argument("--step", default=10, help="Step size (seconds)", type=int)
-    parser.add_argument("--max-time", default=None, help="Maximum simulation time", type=int)
-    parser.add_argument("--verbose", default="y", help="Verbose output? [y/n]", type=str)
-    parser.add_argument("--graphics", default="y", help="Display the simulation on-screen? [y/n]", type=str)
-    parser.add_argument("--cache", default="n", help="Use the traces cache? [y/n]", type=str)
+    parser.add_argument(
+        "--max-time", default=None, help="Maximum simulation time", type=int
+    )
+    parser.add_argument(
+        "--verbose", default="y", help="Verbose output? [y/n]", type=str
+    )
+    parser.add_argument(
+        "--graphics",
+        default="y",
+        help="Display the simulation on-screen? [y/n]",
+        type=str,
+    )
+    parser.add_argument(
+        "--cache", default="n", help="Use the traces cache? [y/n]", type=str
+    )
 
-    parser.add_argument("--tugs-allocation-data", default="n", help="Allocate tugs from data or randomly? [y/n]",
-                        type=str)
-    parser.add_argument("--single-tugs-company", default="y", help="Use a single tugboat company? [y/n]", type=str)
+    parser.add_argument(
+        "--tugs-allocation-data",
+        default="n",
+        help="Allocate tugs from data or randomly? [y/n]",
+        type=str,
+    )
+    parser.add_argument(
+        "--single-tugs-company",
+        default="y",
+        help="Use a single tugboat company? [y/n]",
+        type=str,
+    )
 
-    parser.add_argument("--fixed-generation", default="n",
-                        help="Generate all arrivals at the beginning of the simulation or on the fly? [y/n]", type=str)
+    parser.add_argument(
+        "--fixed-generation",
+        default="n",
+        help="Generate all arrivals at the beginning of the simulation or on the fly? [y/n]",
+        type=str,
+    )
 
     # Anomalies
-    parser.add_argument("--berth-check-prob", default=0,
-                        help="The probability of a berth inspection upon arrival of a vessel (0 <= x <= 1)", type=float)
-    parser.add_argument("--anomalous-speed", default="n", help="Whether to add speed anomalies [y/n]", type=str)
-    parser.add_argument("--tugs-malfunction", default="n", help="Introduce the tugs breaking down anomaly? [y/n]", type=str)
-    parser.add_argument("--tugs-break-percentage-idle", default=0.00001,
-                        help="Probability of an idle tug malfunctioning at every iteration.", type=float)
-    parser.add_argument("--tugs-break-percentage-busy", default=0.0002,
-                        help="Probability of a busy tug malfunctioning at every iteration.", type=float)
+    parser.add_argument(
+        "--berth-check-prob",
+        default=0,
+        help="The probability of a berth inspection upon arrival of a vessel (0 <= x <= 1)",
+        type=float,
+    )
+    parser.add_argument(
+        "--anomalous-speed",
+        default="n",
+        help="Whether to add speed anomalies [y/n]",
+        type=str,
+    )
+    parser.add_argument(
+        "--tugs-malfunction",
+        default="n",
+        help="Introduce the tugs breaking down anomaly? [y/n]",
+        type=str,
+    )
+    parser.add_argument(
+        "--tugs-break-percentage-idle",
+        default=0.00001,
+        help="Probability of an idle tug malfunctioning at every iteration.",
+        type=float,
+    )
+    parser.add_argument(
+        "--tugs-break-percentage-busy",
+        default=0.0002,
+        help="Probability of a busy tug malfunctioning at every iteration.",
+        type=float,
+    )
 
-    parser.add_argument("--seed", default=None, help="Seed for random generators.", type=int)
+    parser.add_argument(
+        "--seed", default=None, help="Seed for random generators.", type=int
+    )
 
     return parser
 
@@ -110,7 +160,9 @@ def parse_arguments():
     args.tugs_malfunction = args.tugs_malfunction.lower() == "y"
 
     if args.fixed_generation and args.max_time is None:
-        print("For generating vessels at the start of the simulation a max_time is required!")
+        print(
+            "For generating vessels at the start of the simulation a max_time is required!"
+        )
         sys.exit(-1)
 
     if args.seed is not None:
@@ -233,9 +285,9 @@ sections_manager.create_sections(sections_filename, VesselClass)
 # Initialize the path finder. If a pickled version
 # of the path finder exists it will be loaded to save
 # time during startup
-if os.path.isfile('example/path_finder.pickle') and args.cache:
+if os.path.isfile("example/path_finder.pickle") and args.cache:
     print("Using precomputed path finder")
-    path_finder = pickle.load(open('example/path_finder.pickle', 'rb'))
+    path_finder = pickle.load(open("example/path_finder.pickle", "rb"))
 else:
     path_finder = PathFinder.get_instance()
     path_finder.load_traces(
@@ -249,12 +301,15 @@ else:
         pilots_wl_pilot_rv_traces_folder,
         pilots_wl_berth_traces_folder,
         ocean_tug_wl_traces_folder,
-        ocean_spawn_ids=[1])
+        ocean_spawn_ids=[1],
+    )
 
     path_finder.load_tugs_rendezvous_locations(tugs_rendezvous_filename)
-    path_finder.load_pilots_rendezvous_locations(pilots_rendezvous_filename, VesselClass.from_class_code)
+    path_finder.load_pilots_rendezvous_locations(
+        pilots_rendezvous_filename, VesselClass.from_class_code
+    )
 
-    pickle.dump(path_finder, open('example/path_finder.pickle', 'wb'))
+    pickle.dump(path_finder, open("example/path_finder.pickle", "wb"))
 
 # Initialize loggers
 vessel_event_logger = VesselEventLogger.get_instance()
@@ -288,7 +343,8 @@ timer_processor = TimerProcessor()
 
 # Create berth service time generator
 berth_service_distribution_factory = BerthServiceDistributionFactory(
-    terminal_service_times_filename)
+    terminal_service_times_filename
+)
 
 # Add berths to the simulation
 berths_generator = BerthsInitializer(
@@ -296,7 +352,7 @@ berths_generator = BerthsInitializer(
     berths_filename,
     VesselContentType,
     berth_service_distribution_factory,
-    berth_randomized_check_prob=args.berth_check_prob
+    berth_randomized_check_prob=args.berth_check_prob,
 )
 
 berths_generator.create_berths()
@@ -306,7 +362,8 @@ tugs_generator = TugsInitializer(
     world,
     tugs_waiting_locations_filename,
     tugs_count=3,
-    companies_from_data=args.tugs_allocation_data)
+    companies_from_data=args.tugs_allocation_data,
+)
 tugs_generator.create_tugboats()
 
 # Add pilots to the simulation
@@ -334,11 +391,23 @@ vessel_strategy = DefaultVesselStrategy(
     anchorage_designator=assign_anchorage,
     berth_designator=berths_allocation_designator,
     path_finder=path_finder,
-    tug_designator=tug_designator)
+    tug_designator=tug_designator,
+)
 
 if args.tugs_malfunction:
-    deattach_polygon = Polygon(json.loads(open(tugs_deattach_location_filename).read())["features"][0]["geometry"]["coordinates"][0])
-    tug_malfunction_anomaly = TugMalfunctionAnomaly(world, path_finder, args.tugs_break_percentage_idle, args.tugs_break_percentage_busy, tug_designator, deattach_polygon)
+    deattach_polygon = Polygon(
+        json.loads(open(tugs_deattach_location_filename).read())["features"][0][
+            "geometry"
+        ]["coordinates"][0]
+    )
+    tug_malfunction_anomaly = TugMalfunctionAnomaly(
+        world,
+        path_finder,
+        args.tugs_break_percentage_idle,
+        args.tugs_break_percentage_busy,
+        tug_designator,
+        deattach_polygon,
+    )
 else:
     tug_malfunction_anomaly = None
 
@@ -346,21 +415,19 @@ tug_strategy = DefaultTugStrategy(
     world=world,
     path_finder=path_finder,
     deattach_polygon_filename=tugs_deattach_location_filename,
-    tug_malfunction_anomaly=tug_malfunction_anomaly)
+    tug_malfunction_anomaly=tug_malfunction_anomaly,
+)
 
 hm_processor = HarbourMasterProcessor(
     world=world,
     vessel_strategy=vessel_strategy,
     tug_strategy=tug_strategy,
-    logger=vessel_event_logger)
+    logger=vessel_event_logger,
+)
 
 # Define the probabilities of the speed anomalies Markov model
 if args.anomalous_speed:
-    speed_transition_p = {
-        "double": 0.1,
-        "half": 0.1,
-        "reset": 0.8
-    }
+    speed_transition_p = {"double": 0.1, "half": 0.1, "reset": 0.8}
 
     anomalous_vessel_percent = 0.2
 else:
@@ -374,18 +441,28 @@ for vessel_type in VesselType:
     if args.max_time is not None:
         vessel_generator = FixedVesselGeneratorProcessor(
             world=world,
-            inter_arrival_time_sampler=vessel_distribution_factory.inter_arrival_time_sampler(vessel_type),
-            vessel_info_sampler=vessel_distribution_factory.vessel_info_sampler(vessel_type),
+            inter_arrival_time_sampler=vessel_distribution_factory.inter_arrival_time_sampler(
+                vessel_type
+            ),
+            vessel_info_sampler=vessel_distribution_factory.vessel_info_sampler(
+                vessel_type
+            ),
             spawn_area_filename=spawn_area_filename,
             run_info=world_run_info,
-            vessel_logger=vessel_event_logger)
+            vessel_logger=vessel_event_logger,
+        )
     else:
         vessel_generator = VesselGeneratorProcessor(
             world=world,
-            inter_arrival_time_sampler=vessel_distribution_factory.inter_arrival_time_sampler(vessel_type),
-            vessel_info_sampler=vessel_distribution_factory.vessel_info_sampler(vessel_type),
+            inter_arrival_time_sampler=vessel_distribution_factory.inter_arrival_time_sampler(
+                vessel_type
+            ),
+            vessel_info_sampler=vessel_distribution_factory.vessel_info_sampler(
+                vessel_type
+            ),
             spawn_area_filename=spawn_area_filename,
-            vessel_logger=vessel_event_logger)
+            vessel_logger=vessel_event_logger,
+        )
 
     world.add_processor(vessel_generator)
 
@@ -419,12 +496,18 @@ if args.graphics:
     anchorages_renderer = AnchorageRenderer()
     tugs_renderer = TugsRenderer()
     pilots_renderer = PilotsRenderer()
-    tugs_rendezvous_renderer = RendezvousRenderer(tugs_rendezvous_filename, tugs_rv_color)
-    pilots_rendezvous_renderer = RendezvousRenderer(pilots_rendezvous_filename, pilots_rv_color)
+    tugs_rendezvous_renderer = RendezvousRenderer(
+        tugs_rendezvous_filename, tugs_rv_color
+    )
+    pilots_rendezvous_renderer = RendezvousRenderer(
+        pilots_rendezvous_filename, pilots_rv_color
+    )
 
     if args.max_time is not None:
         # If max time for the simulation is specified, then split the tugboat companies in the operations graphics
-        operations_renderer = OperationsRenderer(tug_companies=tugs_generator.get_tugboat_companies())
+        operations_renderer = OperationsRenderer(
+            tug_companies=tugs_generator.get_tugboat_companies()
+        )
     else:
         operations_renderer = OperationsRenderer()
 
@@ -438,9 +521,8 @@ if args.graphics:
     world.add_processor(operations_renderer)
 
     simulation_layer = SimulationLayer(
-        world,
-        bounding_box=bounding_box,
-        max_time=args.max_time)
+        world, bounding_box=bounding_box, max_time=args.max_time
+    )
 
     simulation_layer.add_renderer(berths_renderer)
     simulation_layer.add_renderer(vessel_renderer)
@@ -456,11 +538,14 @@ if args.graphics:
     # https://github.com/andrea-cuttone/geoplotlib/wiki/User-Guide#tiles-providers.
     # For example, Port of Antwerp is outdated with the default geoplotlib 'positron' tiles_provider,
     # that's why we are changing it here
-    geoplotlib.tiles_provider({
-        'url': lambda zoom, xtile, ytile: 'http://a.tile.stamen.com/terrain/%d/%d/%d.png' % (zoom, xtile, ytile),
-        'tiles_dir': 'mytiles',
-        'attribution': 'Map tiles by Stamen Design, under CC BY 3.0. Data @ OpenStreetMap contributors'
-    })
+    geoplotlib.tiles_provider(
+        {
+            "url": lambda zoom, xtile, ytile: "http://a.tile.stamen.com/terrain/%d/%d/%d.png"
+            % (zoom, xtile, ytile),
+            "tiles_dir": "mytiles",
+            "attribution": "Map tiles by Stamen Design, under CC BY 3.0. Data @ OpenStreetMap contributors",
+        }
+    )
     geoplotlib.add_layer(simulation_layer)
     geoplotlib.show()
 

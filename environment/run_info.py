@@ -1,13 +1,14 @@
-class RunInfo():
+class RunInfo:
     """Singleton containing information of the simulation run."""
+
     __instance = None
 
     @staticmethod
     def get_instance():
         if RunInfo.__instance == None:
             RunInfo()
-        
-        return RunInfo.__instance 
+
+        return RunInfo.__instance
 
     def __init__(self):
         """Private constructor."""
@@ -32,7 +33,7 @@ class RunInfo():
 
     def set_simulation_end_time(self, simulation_end_time):
         self.simulation_end_time = simulation_end_time
-    
+
     def set_simulation_step_size(self, step_size):
         assert step_size > 0, "Delta time should be positive"
 
@@ -40,13 +41,15 @@ class RunInfo():
 
     def set_simulation_time(self, time):
         self.simulation_timestamp = time
-    
+
     def update_time(self):
         assert self.simulation_timestamp is not None, "Simulation time not set up"
         self.set_simulation_time(self.simulation_timestamp + self.step_size_seconds)
 
     def start_timestamp(self):
-        assert self.simulation_start_time is not None, "Simulation start time not set up"
+        assert (
+            self.simulation_start_time is not None
+        ), "Simulation start time not set up"
         return self.simulation_start_time
 
     def end_timestamp(self):
@@ -64,6 +67,8 @@ class RunInfo():
         :return: current time of the simulation
         """
         assert self.simulation_timestamp is not None, "Simulation time not set up"
-        assert self.simulation_start_time is not None, "Simulation start time not set up"
+        assert (
+            self.simulation_start_time is not None
+        ), "Simulation start time not set up"
 
         return self.simulation_timestamp - self.simulation_start_time

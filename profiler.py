@@ -16,27 +16,20 @@
 """
 
 import time
-import psutil
-from bitmath import Byte, ALL_UNIT_TYPES
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import psutil
+from bitmath import ALL_UNIT_TYPES, Byte
 
 MSEC_PER_SEC = 1000
 PLOT_DELAY = 1 * MSEC_PER_SEC
 DATA_POINTS_LIMIT = 200
 
 
-process = psutil.Popen([
-    "python",
-    "main.py",
-    "--graphics",
-    "n",
-    "--out",
-    "/dev/null",
-    "--verbose",
-    "n"
-])
+process = psutil.Popen(
+    ["python", "main.py", "--graphics", "n", "--out", "/dev/null", "--verbose", "n"]
+)
 # Force using a single CPU
 process.cpu_affinity(cpus=[1])
 start_time = int(time.time())
@@ -45,9 +38,8 @@ time_points, cpu_data, ram_data = [], [], []
 
 # Setup the plot
 fig, (cpu_ax, ram_ax) = plt.subplots(
-    nrows=2,
-    figsize=(8, 12),
-    num="Simulation Profiler")
+    nrows=2, figsize=(8, 12), num="Simulation Profiler"
+)
 
 # Set up the CPU plot
 cpu_ax.set_xlabel("Elapsed seconds")
@@ -59,7 +51,7 @@ cpu_ax.set_xlim(0, 30)
 
 cpu_ax.grid()
 
-cpu_line, = cpu_ax.plot([], [], color="#F39C12")
+(cpu_line,) = cpu_ax.plot([], [], color="#F39C12")
 cpu_line.set_data(time_points, cpu_data)
 
 # Set up the RAM plot
@@ -72,12 +64,13 @@ ram_ax.set_xlim(0, 30)
 
 ram_ax.grid()
 
-ram_line, = ram_ax.plot([], [], color="#3498db")
+(ram_line,) = ram_ax.plot([], [], color="#3498db")
 ram_line.set_data(time_points, ram_data)
 
-def refresh_stats(unit='MB'):
+
+def refresh_stats(unit="MB"):
     assert unit in ALL_UNIT_TYPES, "Invalid unit"
-    
+
     while True:
         # Refresh the stats
         elapsed_seconds = int(time.time()) - start_time
@@ -85,6 +78,7 @@ def refresh_stats(unit='MB'):
         ram = float(getattr(Byte(process.memory_info().rss), unit))
 
         yield elapsed_seconds, cpu_percent, ram
+
 
 def run(data):
     elapsed_seconds, cpu_percent, ram = data
@@ -117,19 +111,17 @@ def run(data):
     cpu_line.set_data(time_points, cpu_data)
     ram_line.set_data(time_points, ram_data)
 
-    return cpu_line,
+    return (cpu_line,)
+
 
 def duplicate_x_ax_size(ax, xmin, xmax):
     ax.set_xlim(xmin, 2 * xmax)
     ax.figure.canvas.draw()
 
+
 plot_animation = animation.FuncAnimation(
-    fig,
-    run,
-    refresh_stats,
-    blit=False,
-    interval=PLOT_DELAY,
-    repeat=False)
+    fig, run, refresh_stats, blit=False, interval=PLOT_DELAY, repeat=False
+)
 
 plt.show()
 process.kill()

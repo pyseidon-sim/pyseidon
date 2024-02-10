@@ -1,11 +1,10 @@
 import random
 from collections import defaultdict
 
-from exceptions import NotEnoughAvailableTugsException
-
 from components import TugInfo, VesselInfo
 from components.fsm import TugStateMachine, VesselStateMachine
 from components.fsm.states import TugState
+from exceptions import NotEnoughAvailableTugsException
 
 
 class DefaultTugCompanyStrategy:
@@ -34,15 +33,15 @@ class DefaultTugCompanyStrategy:
     def assign_company_to_vessel(self, vessel_fsm):
         """Method that performs the global tugboat company planning at the start of the simulation.
 
-           Override this method to implement a custom tug company logic.
+        Override this method to implement a custom tug company logic.
         """
         return random.choice(self.tug_companies)
 
     def assign_specific_tugs_to_vessel(self, entity_id):
         """Method that performs specific tugboat allocation for some vessel when it is
-           added to the simulation world.
+        added to the simulation world.
 
-           Override this method to implement custom logic.
+        Override this method to implement custom logic.
         """
         vessel_info = self.world.component_for_entity(entity_id, VesselInfo)
         vessel_fsm = self.world.component_for_entity(entity_id, VesselStateMachine)
@@ -59,13 +58,15 @@ class DefaultTugCompanyStrategy:
         tug_companies = self._available_tugs_by_company()
 
         if len(tug_companies[vessel_fsm.tug_company]) >= vessel_info.number_of_tugboats:
-            return tug_companies[vessel_fsm.tug_company][:vessel_info.number_of_tugboats]
+            return tug_companies[vessel_fsm.tug_company][
+                : vessel_info.number_of_tugboats
+            ]
 
         # Since there are not enough available tugs by the allocated
         # company, check other companies as well
         for tug_company in tug_companies.keys():
             if len(tug_companies[tug_company]) >= vessel_info.number_of_tugboats:
-                return tug_companies[tug_company][:vessel_info.number_of_tugboats]
+                return tug_companies[tug_company][: vessel_info.number_of_tugboats]
 
         raise NotEnoughAvailableTugsException("Not enough tugs available")
 
@@ -102,4 +103,6 @@ class DefaultTugCompanyStrategy:
         raise NotEnoughAvailableTugsException("Not enough tugs available")
 
     def _get_tugs(self):
-        return [(tug[0], tug[1][0]) for tug in self.world.get_components(TugStateMachine)]
+        return [
+            (tug[0], tug[1][0]) for tug in self.world.get_components(TugStateMachine)
+        ]

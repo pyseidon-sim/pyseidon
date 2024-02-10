@@ -1,5 +1,6 @@
-import numbers
 import decimal
+import numbers
+
 
 def is_number(value):
     """Checks whether a given variable is a number."""

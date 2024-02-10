@@ -1,6 +1,6 @@
-from .vessel import VesselStateMachine
-from .berth import BerthStateMachine
 from .anchorages import AnchorageStateMachine
-from .tug import TugStateMachine
+from .berth import BerthStateMachine
 from .pilot import PilotStateMachine
-from .speed import SpeedStateMachine, NULL_SPEED_MODEL
+from .speed import NULL_SPEED_MODEL, SpeedStateMachine
+from .tug import TugStateMachine
+from .vessel import VesselStateMachine

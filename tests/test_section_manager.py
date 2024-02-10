@@ -1,8 +1,9 @@
 import pytest
 
+from environment.navigation.sections import SectionManager
 from example.example_model.vessel_class import VesselClass
 from exceptions import NoSectionException
-from environment.navigation.sections import SectionManager
+
 from .constants import MOCK_SECTIONS_FILENAME
 
 
@@ -15,27 +16,24 @@ def section_manager():
 
     return manager
 
+
 def test_point_in_section(section_manager):
-    ocean_point = [
-        3.4941673278808594,
-        51.45529052633677]
-    
+    ocean_point = [3.4941673278808594, 51.45529052633677]
+
     # The point does not belong to any section, thus
     # its 'section' should be the ocean (a.k.a. no section)
     assert section_manager.section_for_point(ocean_point).name == "ocean"
 
-    test_section_1_point = [
-        3.544635772705078,
-        51.430895644580175
-    ]
+    test_section_1_point = [3.544635772705078, 51.430895644580175]
 
     assert section_manager.section_for_point(test_section_1_point).name == "section_1"
+
 
 def test_get_section(section_manager):
     # Fetch an existing section
     existing_name = "section_1"
     existing = section_manager.get_section(existing_name)
-    
+
     assert existing is not None
     assert existing.name == existing_name
 

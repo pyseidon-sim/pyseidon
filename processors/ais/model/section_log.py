@@ -5,15 +5,10 @@ class SectionLogger:
         self.logs = []
 
     def add_log(self, section, timestamp):
-        self.logs.append([
-            section.name,
-            timestamp])
+        self.logs.append([section.name, timestamp])
 
     def header(self):
-        return [[
-            "name",
-            "timestamp"
-        ]]
+        return [["name", "timestamp"]]
 
     def clear(self):
         self.logs = []

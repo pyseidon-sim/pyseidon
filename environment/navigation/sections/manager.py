@@ -1,14 +1,16 @@
 import json
 import math
 
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Point, Polygon
 
 from exceptions import NoSectionException
+
 from .section import Section
 
 
 class SectionManager:
     """Singleton class that handles the creation and retrieval of section in the port"""
+
     __instance = None
 
     @staticmethod
@@ -27,34 +29,40 @@ class SectionManager:
             SectionManager.__instance = self
             self.sections = []
             self.ocean_section = Section(
-                name="ocean",
-                shape=None,
-                is_ocean=True,
-                vessel_speeds=None)
+                name="ocean", shape=None, is_ocean=True, vessel_speeds=None
+            )
 
-    def create_sections(self, sections_file_path, vessel_classes, default_vessel_speed={"min": 0.0, "max": 15.0}):
+    def create_sections(
+        self,
+        sections_file_path,
+        vessel_classes,
+        default_vessel_speed={"min": 0.0, "max": 15.0},
+    ):
         with open(sections_file_path, "r") as sections_file:
             sections_data = json.loads(sections_file.read())
 
         sections = []
 
-        for geom in sections_data['features']:
-            sections.append(self._create_section(geom, default_vessel_speed, vessel_classes))
+        for geom in sections_data["features"]:
+            sections.append(
+                self._create_section(geom, default_vessel_speed, vessel_classes)
+            )
 
         self.sections = sections
 
     def _create_section(self, section_json, default_vessel_speed, vessel_classes):
-        properties = section_json['properties']
+        properties = section_json["properties"]
 
         # Pre-process the speeds dict
         vessel_speeds = self._unpack_vessel_speeds(properties["speed"], vessel_classes)
 
         return Section(
-            name=properties['name'],
-            shape=Polygon(section_json['geometry']['coordinates'][0]),
+            name=properties["name"],
+            shape=Polygon(section_json["geometry"]["coordinates"][0]),
             vessel_class_speeds=vessel_speeds,
-            default_speeds=default_vessel_speed)
-    
+            default_speeds=default_vessel_speed,
+        )
+
     def _unpack_vessel_speeds(self, vessel_speed_dict, vessel_classes):
         vessel_speeds = {}
 

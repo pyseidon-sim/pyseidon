@@ -1,9 +1,7 @@
 from environment import RunInfo
-
-from processors.base_processor import BaseProcessor
-
 from environment.navigation.sections import SectionManager
 from processors.ais.model import SectionLogger
+from processors.base_processor import BaseProcessor
 
 
 class SectionsLogProcessor(BaseProcessor):

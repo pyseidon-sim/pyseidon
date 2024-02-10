@@ -1,11 +1,13 @@
 import random
 
-from components import LocationInfo, Shape
 from shapely.geometry import Point
+
+from components import LocationInfo, Shape
 
 
 class WaitingLocationList:
-    """Class that handles the retrieval of waiting location entities with different sorting methods. """
+    """Class that handles the retrieval of waiting location entities with different sorting methods."""
+
     def __init__(self, world=None, data=None):
         if world is None and data is None:
             raise ValueError("Either a world or an array must be given")
@@ -17,7 +19,7 @@ class WaitingLocationList:
             self.locations = world.get_components(LocationInfo, Shape)
         else:
             self.locations = data
-    
+
     def len(self):
         return len(self.locations)
 
@@ -35,7 +37,7 @@ class WaitingLocationList:
         self.index += 1
 
         return location
-    
+
     def filter_by_ids(self, ids):
         if ids is None:
             raise ValueError("Ids must be a list")
@@ -73,7 +75,7 @@ class WaitingLocationList:
     def by_point(self, point: list):
         """Returns the waiting location that contains the given point, given as a lonlat array."""
         geo_point = Point(point[0], point[1])
-        
+
         for d, (location_info, shape) in self.locations:
             if shape.polygon.contains(geo_point):
                 return [d, (location_info, shape)]

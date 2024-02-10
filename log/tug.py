@@ -1,10 +1,10 @@
 import csv
-from colored import fg, attr
-
 from datetime import datetime
-from log.events.tug import TugEvent
+
+from colored import attr, fg
 
 from environment import RunInfo
+from log.events.tug import TugEvent
 
 
 class TugEventLogger:
@@ -37,10 +37,7 @@ class TugEventLogger:
 
     def log_event(self, ent, tug_info, event: TugEvent):
         if str(ent) not in self.tug_logs:
-            self.tug_logs[str(ent)] = {
-                "name": f"Tug {ent}",
-                "events": []
-            }
+            self.tug_logs[str(ent)] = {"name": f"Tug {ent}", "events": []}
 
         self.tug_logs[str(ent)]["events"].append(event)
 
@@ -54,8 +51,8 @@ class TugEventLogger:
             out_name = out_name + " " * (32 - len(out_name))
 
         event_log = event.to_log_string(
-            RunInfo.get_instance().start_timestamp(),
-            colored=True)
+            RunInfo.get_instance().start_timestamp(), colored=True
+        )
 
         formatted_date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         event_string = f"[{formatted_date} : Tugs] "
@@ -66,10 +63,7 @@ class TugEventLogger:
     def log_to_csv(self, out_filename):
         """Exports the logged events as a csv file."""
         with open(out_filename, "w") as out_file:
-            csv_writer = csv.writer(
-                out_file,
-                delimiter=";",
-                quoting=csv.QUOTE_MINIMAL)
+            csv_writer = csv.writer(out_file, delimiter=";", quoting=csv.QUOTE_MINIMAL)
 
             # Add header
             csv_writer.writerow(["tug_id"] + TugEvent.csv_header())
@@ -79,4 +73,5 @@ class TugEventLogger:
 
                 for e in events:
                     csv_writer.writerow(
-                        [ent] + e.to_list(RunInfo.get_instance().start_timestamp()))
+                        [ent] + e.to_list(RunInfo.get_instance().start_timestamp())
+                    )

@@ -1,17 +1,12 @@
 class AnchorageInfo:
     """Contains information of an anchorage in the port"""
 
-    def __init__(
-            self,
-            id: int,
-            name: str,
-            max_draught: float,
-            use=""):
+    def __init__(self, id: int, name: str, max_draught: float, use=""):
         """Initializes a new Anchorage Info
 
-            :param id: anchorage Id.
-            :param name: name of the anchorage.
-            :param max_draught: max draught of the anchorage.
+        :param id: anchorage Id.
+        :param name: name of the anchorage.
+        :param max_draught: max draught of the anchorage.
         """
         if id is None:
             raise ValueError("An anchorage ID is required!")
@@ -28,5 +23,4 @@ class AnchorageInfo:
         self.use = use
 
     def __repr__(self):
-        return (f"<AnchorageInfo: {self.name} | {self.max_draught} | "
-                f"{self.use}>")
+        return f"<AnchorageInfo: {self.name} | {self.max_draught} | " f"{self.use}>"

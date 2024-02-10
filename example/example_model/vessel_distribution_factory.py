@@ -1,8 +1,10 @@
 import numpy as np
 
 from components import VesselInfo
-from .vessel_type import VesselType
+
 from .vessel_class import VesselClass
+from .vessel_type import VesselType
+
 SECONDS_IN_HOUR = 60 * 60
 
 
@@ -15,14 +17,16 @@ class VesselDistributionFactory:
         return lambda: self._vessel_properties[vessel_type]
 
     def inter_arrival_time_sampler(self, vessel_type):
-        return lambda: np.random.exponential(
-            scale=self._inter_arrival_means[vessel_type]) * SECONDS_IN_HOUR
+        return (
+            lambda: np.random.exponential(scale=self._inter_arrival_means[vessel_type])
+            * SECONDS_IN_HOUR
+        )
 
     def _build_vessel_inter_arrival_mean_dict(self):
         return {
             VesselType.BULK_CARRIER: 12,
             VesselType.CHEMICAL_TANKER: 7,
-            VesselType.CONTAINER: 5
+            VesselType.CONTAINER: 5,
         }
 
     def _build_vessel_info_dict(self):
@@ -37,7 +41,8 @@ class VesselDistributionFactory:
             vessel_type=VesselType.BULK_CARRIER,
             vessel_class=VesselClass.get_vessel_class(200),
             pilot_required=True,
-            number_of_tugboats=1)
+            number_of_tugboats=1,
+        )
 
         info_per_vessel[VesselType.CHEMICAL_TANKER] = VesselInfo(
             length=125,
@@ -47,7 +52,8 @@ class VesselDistributionFactory:
             vessel_type=VesselType.CHEMICAL_TANKER,
             vessel_class=VesselClass.get_vessel_class(125),
             pilot_required=True,
-            number_of_tugboats=0)
+            number_of_tugboats=0,
+        )
 
         info_per_vessel[VesselType.CONTAINER] = VesselInfo(
             length=180,
@@ -57,6 +63,7 @@ class VesselDistributionFactory:
             vessel_type=VesselType.CONTAINER,
             vessel_class=VesselClass.get_vessel_class(180),
             pilot_required=True,
-            number_of_tugboats=0)
+            number_of_tugboats=0,
+        )
 
         return info_per_vessel

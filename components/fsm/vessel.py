@@ -1,4 +1,5 @@
 from fysom import Fysom
+
 from .states import VesselState
 
 
@@ -8,7 +9,7 @@ class VesselStateMachine:
     def __init__(self, on_state_change=None):
         """Initializes a new VesselStateMachine.
 
-            :param on_state_change: function to execute when the state changes (optional).
+        :param on_state_change: function to execute when the state changes (optional).
         """
         self.destination_anchorage_id = None
         self.destination_anchorage_fsm = None
@@ -35,7 +36,9 @@ class VesselStateMachine:
         self.fsm.generate()
 
     def assign_berth(self, berth_fsm, berth_id):
-        assert self.destination_berth_fsm is None, "The vessel already had an assigned berth!"
+        assert (
+            self.destination_berth_fsm is None
+        ), "The vessel already had an assigned berth!"
 
         assert berth_id is not None, "The berth id must not be None!"
         assert berth_fsm is not None, "The berth fsm must not be None!"
@@ -54,10 +57,18 @@ class VesselStateMachine:
 
         self.fsm.go_to_berth()
 
-    def assign_tugs_rendezvous(self, rendezvous_id, pilot_rv_tug_rv_path, tug_rv_berth_path):
-        assert self.tugs_rendezvous_id is None, "The vessel already has a rendezvous area assigned!"
-        assert pilot_rv_tug_rv_path is not None, "A pilot rendezvous -> tug rendezvous path is required"
-        assert tug_rv_berth_path is not None, "A tug rendezvous -> berth path is required"
+    def assign_tugs_rendezvous(
+        self, rendezvous_id, pilot_rv_tug_rv_path, tug_rv_berth_path
+    ):
+        assert (
+            self.tugs_rendezvous_id is None
+        ), "The vessel already has a rendezvous area assigned!"
+        assert (
+            pilot_rv_tug_rv_path is not None
+        ), "A pilot rendezvous -> tug rendezvous path is required"
+        assert (
+            tug_rv_berth_path is not None
+        ), "A tug rendezvous -> berth path is required"
 
         self.tugs_rendezvous_id = rendezvous_id
         self.pilots_rendezvous_tug_rendezvous_path = pilot_rv_tug_rv_path
@@ -66,17 +77,24 @@ class VesselStateMachine:
     def go_to_tugs_rendezvous(self, rendezvous_id=None, rendezvous_berth_path=None):
         """Transitions the FSM in the GO_TO_TUG_RENDEZVOUS state.
 
-            The tug rendezvous id (and path) can either be set via assign_tugs_rendezvous
-            or by this method, but not both!
+        The tug rendezvous id (and path) can either be set via assign_tugs_rendezvous
+        or by this method, but not both!
         """
         missing_rv = self.tugs_rendezvous_id is None and rendezvous_id is None
-        missing_path = self.tugs_rendezvous_berth_path is None and rendezvous_berth_path is None
+        missing_path = (
+            self.tugs_rendezvous_berth_path is None and rendezvous_berth_path is None
+        )
 
         assert not missing_rv, "No tugs rendezvous was set or passed as an argument!"
-        assert not missing_path, "No tugs rendezvous path was set or passed as an argument!"
+        assert (
+            not missing_path
+        ), "No tugs rendezvous path was set or passed as an argument!"
 
         double_rv = self.tugs_rendezvous_id is not None and rendezvous_id is not None
-        double_path = self.tugs_rendezvous_berth_path is not None and rendezvous_berth_path is not None
+        double_path = (
+            self.tugs_rendezvous_berth_path is not None
+            and rendezvous_berth_path is not None
+        )
 
         assert not double_rv, "A tug rendezvous was already set!"
         assert not double_path, "A tug rendezvous path was already set!"
@@ -90,8 +108,12 @@ class VesselStateMachine:
             self.tugs_rendezvous_berth_path = rendezvous_berth_path
 
     def go_to_pilots_rendezvous(self, rendezvous_id, rendezvous_berth_path):
-        assert self.pilot_rendezvous_id is None, "The vessel already has a rendezvous area assigned!"
-        assert rendezvous_berth_path is not None, "An ocean -> pilot rendezvous path is required"
+        assert (
+            self.pilot_rendezvous_id is None
+        ), "The vessel already has a rendezvous area assigned!"
+        assert (
+            rendezvous_berth_path is not None
+        ), "An ocean -> pilot rendezvous path is required"
 
         self.fsm.go_to_pilots_rendezvous()
 
@@ -105,7 +127,9 @@ class VesselStateMachine:
         self.fsm.stop_at_pilots_rendezvous()
 
     def servicing(self, vessel_info):
-        assert self.destination_berth_fsm is not None, "The vessel does not have a booked berth!"
+        assert (
+            self.destination_berth_fsm is not None
+        ), "The vessel does not have a booked berth!"
 
         self.fsm.servicing()
         self.pilot_boarded = False
@@ -114,11 +138,11 @@ class VesselStateMachine:
     def done_servicing(self):
         self.destination_berth_fsm = None
 
-        self.fsm.done_servicing()        
+        self.fsm.done_servicing()
 
     def wait_for_tugs_pilots(self):
         self.fsm.wait_for_tugs_pilots()
-    
+
     def go_to_anchorage(self, anchorage_id, anchorage_fsm):
         self.fsm.go_to_anchorage()
         self.destination_anchorage_id = anchorage_id

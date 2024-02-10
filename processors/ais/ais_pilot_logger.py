@@ -1,9 +1,7 @@
 from environment import RunInfo
-
-from processors.base_processor import BaseProcessor
-
 from environment.queries import fetch_pilots
 from processors.ais.model.ais_log import AISPositionLogger
+from processors.base_processor import BaseProcessor
 
 
 class AISPilotLogProcessor(BaseProcessor):
@@ -12,4 +10,12 @@ class AISPilotLogProcessor(BaseProcessor):
 
     def _process(self, dt):
         for ent, (pos, cs, vel, _, fsm, _) in fetch_pilots(self.world):
-            self.logger.add_log(ent, pos, vel, cs, None, RunInfo.get_instance().simulation_time(), state=fsm.current())
+            self.logger.add_log(
+                ent,
+                pos,
+                vel,
+                cs,
+                None,
+                RunInfo.get_instance().simulation_time(),
+                state=fsm.current(),
+            )

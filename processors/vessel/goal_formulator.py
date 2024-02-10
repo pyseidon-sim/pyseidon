@@ -1,27 +1,23 @@
 import random
 
-from processors.base_processor import BaseProcessor
-
-from components.fsm.states import VesselState
 from components import Velocity, VesselInfo
-
-from environment.queries import fetch_vessels
-
-from exceptions import NoPathException, PathTerminatedException
-
-from environment.messaging.types import VesselMessageType
+from components.fsm.states import VesselState
 from environment.messaging import MessageBroker, SimulationMessage
-
+from environment.messaging.types import VesselMessageType
+from environment.queries import fetch_vessels
+from exceptions import NoPathException, PathTerminatedException
+from processors.base_processor import BaseProcessor
 from processors.utils import target_reached
 
 
 class VesselGoalFormulatorProcessor(BaseProcessor):
     """
-        Handles the goal formulation of a vessel, such
-        as retrieving the next destination and checking
-        if a target is reached. Communicates with the
-        HarbourMasterProcessor
+    Handles the goal formulation of a vessel, such
+    as retrieving the next destination and checking
+    if a target is reached. Communicates with the
+    HarbourMasterProcessor
     """
+
     MIN_SPEED_THRESHOLD = 3
     RESOURCE_CHECK_FRAME_DELTA = 20
 
@@ -44,7 +40,7 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
             VesselState.WAITING_FOR_TUGS_PILOTS_BERTH: VesselMessageType.DEPART,
             VesselState.WAITING_FOR_DEPARTURE_CLEARANCE: VesselMessageType.REQUEST_DEPARTURE_CLEARANCE,
             VesselState.LEAVING: VesselMessageType.DEPARTED,
-            VesselState.TUG_MALFUNCTION: VesselMessageType.FIX_TUG
+            VesselState.TUG_MALFUNCTION: VesselMessageType.FIX_TUG,
         }
 
         # The smaller the number, the more important some state is
@@ -63,7 +59,7 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
             VesselState.INCOMING: 4,
             VesselState.SERVICING: 4,
             VesselState.SCHEDULED: 4,
-            VesselState.LEFT: 5
+            VesselState.LEFT: 5,
         }
 
         # Taken from environment/queries/__init__.py
@@ -74,16 +70,28 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
     def _process(self, dt):
         vessels = fetch_vessels(self.world)
         # Sort by state and spawn time (smaller entity id means spawned earlier)
-        vessels = sorted(vessels, key=lambda x: (self.state_priorities[x[1][self.vessel_fsm_index].current()], x[0]))
+        vessels = sorted(
+            vessels,
+            key=lambda x: (
+                self.state_priorities[x[1][self.vessel_fsm_index].current()],
+                x[0],
+            ),
+        )
 
-        for ent, (pos, frame_counter, _, vel, vessel_path, vessel_fsm, vessel_info) in vessels:
+        for ent, (
+            pos,
+            frame_counter,
+            _,
+            vel,
+            vessel_path,
+            vessel_fsm,
+            vessel_info,
+        ) in vessels:
             current_state = vessel_fsm.current()
             # Do not formulate a goal/advance the path if the vessel's tug has broken down and its waiting for a new one
             if current_state == VesselState.TUG_MALFUNCTION:
                 message = self.message_per_state[current_state]
-                self._send_harbour_master_message(
-                    ent=ent,
-                    message=message)
+                self._send_harbour_master_message(ent=ent, message=message)
 
                 continue
 
@@ -97,8 +105,8 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
             if vessel_fsm.current() == VesselState.GOING_TO_ANCHORAGE:
                 if frame_counter.get_count() >= self.RESOURCE_CHECK_FRAME_DELTA:
                     self._send_harbour_master_message(
-                        ent=ent,
-                        message=self.message_per_state[vessel_fsm.current()])
+                        ent=ent, message=self.message_per_state[vessel_fsm.current()]
+                    )
 
                     frame_counter.reset()
                 else:
@@ -106,8 +114,8 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
 
     def formulate_goal(self, ent, vessel_path, vessel_fsm, vel, vessel_info):
         """
-            Retrieves the next node in path if a path exists, otherwise notifies the
-            HM of its current status
+        Retrieves the next node in path if a path exists, otherwise notifies the
+        HM of its current status
         """
         try:
             _ = vessel_path.get_next_destination()
@@ -120,26 +128,20 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
                 # We assume a crossing happens when the next node
                 # in path belongs to a different section
                 self._handle_section_crossing(
-                    ent=ent,
-                    from_section=current_section,
-                    to_section=next_section)
+                    ent=ent, from_section=current_section, to_section=next_section
+                )
         except (NoPathException, PathTerminatedException) as _:
             current_state = vessel_fsm.current()
 
             if current_state in self.message_per_state:
                 message = self.message_per_state[current_state]
 
-                self._send_harbour_master_message(
-                    ent=ent,
-                    message=message)
+                self._send_harbour_master_message(ent=ent, message=message)
         finally:
             vessel_path.advance_path()
 
     def _handle_section_crossing(self, ent, from_section, to_section):
-        data = {
-            "from": from_section,
-            "to": to_section
-        }
+        data = {"from": from_section, "to": to_section}
 
         self._update_vessel_speed(to_section, ent)
 
@@ -148,15 +150,17 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
                 sender=f"vessel:{ent}",
                 destination="harbour-master",
                 message=VesselMessageType.CHANGE_SECTION,
-                data=data))
+                data=data,
+            )
+        )
 
     def _update_vessel_speed(self, target_section, ent):
         velocity = self.world.component_for_entity(ent, Velocity)
         vessel_info = self.world.component_for_entity(ent, VesselInfo)
 
         vessel_class = self.vessel_base_class.get_vessel_class(
-            vessel_info.length,
-            vessel_info.actual_draught)
+            vessel_info.length, vessel_info.actual_draught
+        )
 
         speed_data = target_section.speeds_for_class(vessel_class)
         max_speed, min_speed = speed_data["max"], speed_data["min"]
@@ -170,6 +174,6 @@ class VesselGoalFormulatorProcessor(BaseProcessor):
     def _send_harbour_master_message(self, ent, message):
         self.message_broker.send_message(
             SimulationMessage(
-                sender=f"vessel:{ent}",
-                destination="harbour-master",
-                message=message))
+                sender=f"vessel:{ent}", destination="harbour-master", message=message
+            )
+        )

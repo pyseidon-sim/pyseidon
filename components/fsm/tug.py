@@ -1,4 +1,5 @@
 from fysom import Fysom
+
 from .states import TugState
 
 
@@ -29,8 +30,12 @@ class TugStateMachine:
         return self.destination_vessel_id
 
     def go_to_rendezvous(self, vessel_id, rendezvous_id):
-        assert self.destination_vessel_id is None, "The tugboat already has an assigned vessel!"
-        assert self.destination_rendezvous_id is None, "The tugboat already has an assigned rendezvous!"
+        assert (
+            self.destination_vessel_id is None
+        ), "The tugboat already has an assigned vessel!"
+        assert (
+            self.destination_rendezvous_id is None
+        ), "The tugboat already has an assigned rendezvous!"
         assert vessel_id is not None, "The vessel id must not be None!"
         assert rendezvous_id is not None, "The rendezvous id must not be None!"
 
@@ -43,7 +48,9 @@ class TugStateMachine:
         self.fsm.wait_at_rendezvous()
 
     def go_to_malfunction_location(self, vessel_id, berth_id):
-        assert self.destination_vessel_id is None, "The tugboat already has an assigned vessel!"
+        assert (
+            self.destination_vessel_id is None
+        ), "The tugboat already has an assigned vessel!"
 
         assert vessel_id is not None, "The vessel id must not be none!"
         assert berth_id is not None, "The berth id must not be none!"
@@ -57,8 +64,12 @@ class TugStateMachine:
         self.fsm.wait_at_malfunction_location()
 
     def go_to_berth(self, vessel_id, berth_id):
-        assert self.destination_vessel_id is None, "The tugboat already has an assigned vessel!"
-        assert self.destination_berth_id is None, "The tugboat already has an assigned berth!"
+        assert (
+            self.destination_vessel_id is None
+        ), "The tugboat already has an assigned vessel!"
+        assert (
+            self.destination_berth_id is None
+        ), "The tugboat already has an assigned berth!"
 
         assert vessel_id is not None, "The vessel id must exist!"
         assert berth_id is not None, "The berth id must exist!"
@@ -106,7 +117,6 @@ class TugStateMachine:
         self.previous_vessel_path = None
 
         self.fsm.get_fixed_busy()
-
 
     def get_fixed_idle(self):
         self.state_before_failure = None

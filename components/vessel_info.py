@@ -5,16 +5,17 @@ class VesselInfo:
     """Contains information of a Vessel in the port"""
 
     def __init__(
-            self, 
-            length=0.0,
-            width=0.0,
-            max_draught=0.0,
-            actual_draught=0.0,
-            vessel_type=None,
-            vessel_class=None,
-            pilot_required=False,
-            number_of_tugboats=0,
-            **kwargs):
+        self,
+        length=0.0,
+        width=0.0,
+        max_draught=0.0,
+        actual_draught=0.0,
+        vessel_type=None,
+        vessel_class=None,
+        pilot_required=False,
+        number_of_tugboats=0,
+        **kwargs,
+    ):
         """Initializes a new VesselInfo
 
         :param length: length of the vessel (default 0).
@@ -47,7 +48,9 @@ class VesselInfo:
         return self.number_of_tugboats > 0
 
     def __repr__(self):
-        return (f"<VesselInfo: {self.name} | {self.length} | {self.width} | "
-                f"{self.vessel_type} | {self.vessel_class} | "
-                f"{self.actual_draught} (max: {self.max_draught}) | {self.number_of_tugboats} "
-                f" tugboat(s) | pilot: {self.pilot_required} | {self.vessel_type}>")
+        return (
+            f"<VesselInfo: {self.name} | {self.length} | {self.width} | "
+            f"{self.vessel_type} | {self.vessel_class} | "
+            f"{self.actual_draught} (max: {self.max_draught}) | {self.number_of_tugboats} "
+            f" tugboat(s) | pilot: {self.pilot_required} | {self.vessel_type}>"
+        )

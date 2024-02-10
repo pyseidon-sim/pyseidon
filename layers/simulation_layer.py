@@ -1,10 +1,9 @@
 import os
 import signal
 
-from geoplotlib.layers import BaseLayer
 from geoplotlib.core import BatchPainter
-from geoplotlib.utils import epoch_to_str
-from geoplotlib.utils import BoundingBox
+from geoplotlib.layers import BaseLayer
+from geoplotlib.utils import BoundingBox, epoch_to_str
 
 from environment import RunInfo
 
@@ -14,7 +13,7 @@ class SimulationLayer(BaseLayer):
     It is based on geoplotlib's BaseLayer class.
     """
 
-    def __init__(self, world, bounding_box=[0,0,0,0], max_time=None):
+    def __init__(self, world, bounding_box=[0, 0, 0, 0], max_time=None):
         """Initializes a Simulation Layer
 
         :param world: Esper world object
@@ -25,12 +24,13 @@ class SimulationLayer(BaseLayer):
         self.renderers = []
         self.run_info = RunInfo.get_instance()
         self.end_time = max_time
-        
+
         self.bounding_box = BoundingBox(
             north=bounding_box[0],
             west=bounding_box[1],
             south=bounding_box[2],
-            east=bounding_box[3])
+            east=bounding_box[3],
+        )
 
     def add_renderer(self, renderer):
         """Attach a new rendering processor to the layer."""
@@ -54,7 +54,10 @@ class SimulationLayer(BaseLayer):
         painter.batch_draw()
         self.run_info.update_time()
 
-        if self.end_time is not None and self.run_info.simulation_time() > self.end_time:
+        if (
+            self.end_time is not None
+            and self.run_info.simulation_time() > self.end_time
+        ):
             os.kill(os.getpid(), signal.SIGINT)
 
     def bbox(self):

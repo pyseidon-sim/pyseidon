@@ -1,39 +1,43 @@
-import random
 import functools
+import random
+
 import numpy as np
 
-from exceptions import NoBerthException, \
-    SectionPathUnavailableException, NoAvailablePilotException, \
-    NotEnoughAvailableTugsException, NoPathException, PathTerminatedException
-
-from environment.queries import BerthList, WaitingLocationList
+from components import (LocationType, PilotInfo, Position, Velocity,
+                        VesselInfo, VesselPath)
+from components.fsm import (BerthStateMachine, PilotStateMachine,
+                            TugStateMachine, VesselStateMachine)
+from components.fsm.states import BerthState, PilotState, TugState, VesselState
 from environment.messaging.types import VesselMessageType
-from components.fsm.states import BerthState, TugState, PilotState, VesselState
-
-from components import Position, VesselInfo, VesselPath, PilotInfo, Velocity, LocationType
-from components.fsm import VesselStateMachine, TugStateMachine, PilotStateMachine, BerthStateMachine
+from environment.queries import BerthList, WaitingLocationList
+from exceptions import (NoAvailablePilotException, NoBerthException,
+                        NoPathException, NotEnoughAvailableTugsException,
+                        PathTerminatedException,
+                        SectionPathUnavailableException)
 
 from .constants import VESSEL_ORIGIN_OFFSET
 
 
-class DefaultVesselStrategy():
+class DefaultVesselStrategy:
     """This class handles incoming vessel messages and decides the next step to be taken"""
+
     def __init__(
-            self,
-            world,
-            anchorage_designator,
-            berth_designator,
-            path_finder,
-            tug_designator=None):
+        self,
+        world,
+        anchorage_designator,
+        berth_designator,
+        path_finder,
+        tug_designator=None,
+    ):
         """Initialize the vessel strategy
 
-            Args:
-                world: the simulation world.
-                anchorage_designator: function that returns an anchorage given a entity id and the world
-                berth_designator: function that returns a suitable berth given the vessel info and a list of available berths
-                path_finder: PathFinder singleton object
-                tug_designator: function(vessel_entity_id) that returns tug ids available for the given vessel
-                                or raises a NotEnoughAvailableTugsException
+        Args:
+            world: the simulation world.
+            anchorage_designator: function that returns an anchorage given a entity id and the world
+            berth_designator: function that returns a suitable berth given the vessel info and a list of available berths
+            path_finder: PathFinder singleton object
+            tug_designator: function(vessel_entity_id) that returns tug ids available for the given vessel
+                            or raises a NotEnoughAvailableTugsException
         """
         self.world = world
         self.anchorage_designator = anchorage_designator
@@ -43,12 +47,12 @@ class DefaultVesselStrategy():
 
     def handle(self, message, entity_id, vessel_info):
         """
-            Handle incoming messages
+        Handle incoming messages
 
-            Args:
-                message: message object
-                entity_id: entity id of the vessel that generated the message
-                vessel_info: the message sender vessel info
+        Args:
+            message: message object
+            entity_id: entity id of the vessel that generated the message
+            vessel_info: the message sender vessel info
         """
         return {
             VesselMessageType.REQUEST_ARRIVAL_CLEARANCE: self.handle_incoming,
@@ -63,7 +67,7 @@ class DefaultVesselStrategy():
             VesselMessageType.GO_TO_BERTH: self.handle_go_to_berth,
             VesselMessageType.GO_TO_PILOT_RENDEZVOUS: self.handle_go_to_pilot_rendezvous,
             VesselMessageType.GO_TO_TUGS_RENDEZVOUS: self.handle_go_to_tugs_rendezvous,
-            VesselMessageType.FIX_TUG: self.handle_fix_tug
+            VesselMessageType.FIX_TUG: self.handle_fix_tug,
         }[message.message](message, entity_id, vessel_info)
 
     def lock_arrival_resources(self, entity_id, vessel_info):
@@ -76,8 +80,12 @@ class DefaultVesselStrategy():
 
         try:
             # If the vessel does not need pilots or tugs, redirect it to the berth straight away
-            if not vessel_info.pilot_required and (not vessel_info.tugs_required or self.tug_designator is None):
-                berth_info, term_fsm, ocean_berth_path = self._select_berth(path, vessel_info, position)
+            if not vessel_info.pilot_required and (
+                not vessel_info.tugs_required or self.tug_designator is None
+            ):
+                berth_info, term_fsm, ocean_berth_path = self._select_berth(
+                    path, vessel_info, position
+                )
 
                 path.set_path(ocean_berth_path)
 
@@ -88,20 +96,27 @@ class DefaultVesselStrategy():
                 return True
 
             # If the vessel needs pilots but no tugboats, redirect it to a pilot rendezvous and then to berth
-            if vessel_info.pilot_required and (not vessel_info.tugs_required or self.tug_designator is None):
+            if vessel_info.pilot_required and (
+                not vessel_info.tugs_required or self.tug_designator is None
+            ):
                 # Verify if a pilot is available for this vessel
                 pilot_id, pilot_fsm = self._select_pilot()
 
                 # Select an available berth connected to the designated pilot rendezvous point
-                berth_info, ocean_pilot_rv_path, pilot_rv_berth_path, pilot_rv_id = \
+                berth_info, ocean_pilot_rv_path, pilot_rv_berth_path, pilot_rv_id = (
                     self._select_berth_pilot_rendezvous(path, vessel_info, position)
+                )
 
                 if berth_info is None:
-                    raise NoBerthException(f"No available berth for vessel {vessel_info.name}")
+                    raise NoBerthException(
+                        f"No available berth for vessel {vessel_info.name}"
+                    )
 
                 path.set_path(ocean_pilot_rv_path)
 
-                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[0][1][2]
+                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[
+                    0
+                ][1][2]
 
                 # Lock the paths berth for this vessel
                 fsm.assign_berth(berth_fsm, berth_info.id)
@@ -110,14 +125,17 @@ class DefaultVesselStrategy():
                 pilot_position = self.world.component_for_entity(pilot_id, Position)
                 pilot_path = self.world.component_for_entity(pilot_id, VesselPath)
 
-                _, (location_info, _) = \
-                    WaitingLocationList(world=self.world).filter_by_ids([pilot_fsm.waiting_location_id])[0]
+                _, (location_info, _) = WaitingLocationList(
+                    world=self.world
+                ).filter_by_ids([pilot_fsm.waiting_location_id])[0]
 
                 pilot_path.set_path(
                     self.path_finder.pilot_waiting_location_pilot_rendezvous_path(
                         pilot_position=pilot_position.lonlat,
                         rendezvous_id=pilot_rv_id,
-                        waiting_location_id=location_info.id))
+                        waiting_location_id=location_info.id,
+                    )
+                )
 
                 pilot_fsm.go_to_rendezvous(entity_id, pilot_rv_id)
 
@@ -125,24 +143,33 @@ class DefaultVesselStrategy():
                 fsm.go_to_pilots_rendezvous(pilot_rv_id, pilot_rv_berth_path)
 
                 self._add_offset_to_vessel_position(position, path)
-                
+
                 return True
 
             # If the vessel needs tugs but no pilot, redirect it to a tug rendezvous and then to berth
-            if not vessel_info.pilot_required and vessel_info.tugs_required and self.tug_designator is not None:
+            if (
+                not vessel_info.pilot_required
+                and vessel_info.tugs_required
+                and self.tug_designator is not None
+            ):
                 # Verify if tugs are available for this vessel
                 tug_ids = self.tug_designator(entity_id)
 
                 # Select an available berth connected to the designed rendezvous point
-                berth_info, ocean_tug_rv_path,\
-                tug_rv_berth_path, tug_rv_id = self._select_berth_tug_rendezvous(path, vessel_info, position)
+                berth_info, ocean_tug_rv_path, tug_rv_berth_path, tug_rv_id = (
+                    self._select_berth_tug_rendezvous(path, vessel_info, position)
+                )
 
                 if berth_info is None:
-                    raise NoBerthException(f"No available berth for vessel {vessel_info.name}")
+                    raise NoBerthException(
+                        f"No available berth for vessel {vessel_info.name}"
+                    )
 
                 path.set_path(ocean_tug_rv_path)
 
-                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[0][1][2]
+                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[
+                    0
+                ][1][2]
 
                 # Lock the berth for this vessel
                 fsm.assign_berth(berth_fsm, berth_info.id)
@@ -153,45 +180,67 @@ class DefaultVesselStrategy():
                     tug_position = self.world.component_for_entity(tug_id, Position)
                     tug_path = self.world.component_for_entity(tug_id, VesselPath)
 
-                    _, (location_info, _) = WaitingLocationList(world=self.world).filter_by_ids([tug_fsm.waiting_location_id])[0]
+                    _, (location_info, _) = WaitingLocationList(
+                        world=self.world
+                    ).filter_by_ids([tug_fsm.waiting_location_id])[0]
 
-                    tug_wl_rv_path = self.path_finder.tugs_waiting_location_rendezvous_path(
-                        tug_position=tug_position.lonlat,
-                        waiting_location_id=location_info.id,
-                        rendezvous_id=tug_rv_id)
+                    tug_wl_rv_path = (
+                        self.path_finder.tugs_waiting_location_rendezvous_path(
+                            tug_position=tug_position.lonlat,
+                            waiting_location_id=location_info.id,
+                            rendezvous_id=tug_rv_id,
+                        )
+                    )
                     tug_path.set_path(tug_wl_rv_path)
 
                     tug_fsm.go_to_rendezvous(entity_id, tug_rv_id)
 
                 fsm.tugboats = tug_ids
-                fsm.go_to_tugs_rendezvous(rendezvous_id=tug_rv_id, rendezvous_berth_path=tug_rv_berth_path)
+                fsm.go_to_tugs_rendezvous(
+                    rendezvous_id=tug_rv_id, rendezvous_berth_path=tug_rv_berth_path
+                )
                 self._add_offset_to_vessel_position(position, path)
 
                 return True
 
             # If the vessel needs both tugs and pilots, redirect it to a pilot rendezvous,
             # then to tug rendezvous, and then to berth
-            if vessel_info.pilot_required and vessel_info.tugs_required and self.tug_designator is not None:
+            if (
+                vessel_info.pilot_required
+                and vessel_info.tugs_required
+                and self.tug_designator is not None
+            ):
                 # Verify if a pilot is available for this vessel
                 pilot_id, pilot_fsm = self._select_pilot()
 
                 # Select an available berth connected to the designated tug rendezvous point and pilot rendezvous point
-                berth_info, ocean_pilot_rv_path, pilot_rv_tug_rv_path, tug_rv_berth_path, tug_rv_id, pilot_rv_id = \
-                    self._select_berth_tug_rendezvous_pilot_rendezvous(path,
-                                                                       vessel_info,
-                                                                       position)
+                (
+                    berth_info,
+                    ocean_pilot_rv_path,
+                    pilot_rv_tug_rv_path,
+                    tug_rv_berth_path,
+                    tug_rv_id,
+                    pilot_rv_id,
+                ) = self._select_berth_tug_rendezvous_pilot_rendezvous(
+                    path, vessel_info, position
+                )
 
                 if berth_info is None:
-                    raise NoBerthException(f"No available berth for vessel {vessel_info.name}")
+                    raise NoBerthException(
+                        f"No available berth for vessel {vessel_info.name}"
+                    )
 
-                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[0][1][2]
+                berth_fsm = BerthList(world=self.world).filter_by_ids([berth_info.id])[
+                    0
+                ][1][2]
 
                 # Assign the pilot to the vessel
                 pilot_position = self.world.component_for_entity(pilot_id, Position)
                 pilot_path = self.world.component_for_entity(pilot_id, VesselPath)
 
-                _, (pilot_location_info, _) = \
-                    WaitingLocationList(world=self.world).filter_by_ids([pilot_fsm.waiting_location_id])[0]
+                _, (pilot_location_info, _) = WaitingLocationList(
+                    world=self.world
+                ).filter_by_ids([pilot_fsm.waiting_location_id])[0]
 
                 # Verify if tugs are available for this vessel
                 tug_ids = self.tug_designator(entity_id)
@@ -202,13 +251,17 @@ class DefaultVesselStrategy():
                     tug_position = self.world.component_for_entity(tug_id, Position)
                     tug_path = self.world.component_for_entity(tug_id, VesselPath)
 
-                    _, (tug_location_info, _) = \
-                    WaitingLocationList(world=self.world).filter_by_ids([tug_fsm.waiting_location_id])[0]
+                    _, (tug_location_info, _) = WaitingLocationList(
+                        world=self.world
+                    ).filter_by_ids([tug_fsm.waiting_location_id])[0]
 
-                    tug_wl_rv_path = self.path_finder.tugs_waiting_location_rendezvous_path(
-                        tug_position=tug_position.lonlat,
-                        waiting_location_id=tug_location_info.id,
-                        rendezvous_id=tug_rv_id)
+                    tug_wl_rv_path = (
+                        self.path_finder.tugs_waiting_location_rendezvous_path(
+                            tug_position=tug_position.lonlat,
+                            waiting_location_id=tug_location_info.id,
+                            rendezvous_id=tug_rv_id,
+                        )
+                    )
                     tug_path.set_path(tug_wl_rv_path)
 
                     tug_fsm.go_to_rendezvous(entity_id, tug_rv_id)
@@ -219,14 +272,18 @@ class DefaultVesselStrategy():
                     self.path_finder.pilot_waiting_location_pilot_rendezvous_path(
                         pilot_position=pilot_position.lonlat,
                         waiting_location_id=pilot_location_info.id,
-                        rendezvous_id=pilot_rv_id))
+                        rendezvous_id=pilot_rv_id,
+                    )
+                )
 
                 # Redirect vessel to pilot rendezvous
                 path.set_path(ocean_pilot_rv_path)
 
                 # Lock the berth for this vessel
                 fsm.assign_berth(berth_fsm, berth_info.id)
-                fsm.assign_tugs_rendezvous(tug_rv_id, pilot_rv_tug_rv_path, tug_rv_berth_path)
+                fsm.assign_tugs_rendezvous(
+                    tug_rv_id, pilot_rv_tug_rv_path, tug_rv_berth_path
+                )
 
                 pilot_fsm.go_to_rendezvous(entity_id, pilot_rv_id)
 
@@ -238,8 +295,12 @@ class DefaultVesselStrategy():
                 # destination node has a distance != 0
                 self._add_offset_to_vessel_position(position, path)
                 return True
-        except (NoBerthException, SectionPathUnavailableException,
-                NoAvailablePilotException, NotEnoughAvailableTugsException) as _:
+        except (
+            NoBerthException,
+            SectionPathUnavailableException,
+            NoAvailablePilotException,
+            NotEnoughAvailableTugsException,
+        ) as _:
             fsm.pilot = None
             fsm.tugboats = None
 
@@ -247,8 +308,8 @@ class DefaultVesselStrategy():
 
     def handle_incoming(self, message, entity_id, vessel_info):
         """
-            Decides whether a vessel should sail directly to
-            meet pilots and tugs at a designated location or wait in an anchorage
+        Decides whether a vessel should sail directly to
+        meet pilots and tugs at a designated location or wait in an anchorage
         """
         position = self.world.component_for_entity(entity_id, Position)
         path = self.world.component_for_entity(entity_id, VesselPath)
@@ -272,9 +333,8 @@ class DefaultVesselStrategy():
             fsm = self.world.component_for_entity(entity_id, VesselStateMachine)
 
             anchorage_id, anchorage_fsm = self._select_and_route_to_anchorage(
-                entity_id,
-                path,
-                position)
+                entity_id, path, position
+            )
 
             position.update_position(np.array(path.get_origin()) + VESSEL_ORIGIN_OFFSET)
             anchorage_fsm.book(fsm)
@@ -304,15 +364,19 @@ class DefaultVesselStrategy():
         fsm.pilot_boarded = True
 
         _, (waiting_location_info, _) = WaitingLocationList(
-            world=self.world).random_location_by_type(LocationType.PILOTS_STORAGE)
+            world=self.world
+        ).random_location_by_type(LocationType.PILOTS_STORAGE)
 
         pilot_position = self.world.component_for_entity(fsm.pilot, Position)
         pilot_path = self.world.component_for_entity(fsm.pilot, VesselPath)
 
-        waiting_location_path = self.path_finder.pilot_rendezvous_pilot_waiting_location_path(
-            pilot_position=pilot_position.lonlat,
-            rendezvous_id=fsm.pilot_rendezvous_id,
-            waiting_location_id=waiting_location_info.id)
+        waiting_location_path = (
+            self.path_finder.pilot_rendezvous_pilot_waiting_location_path(
+                pilot_position=pilot_position.lonlat,
+                rendezvous_id=fsm.pilot_rendezvous_id,
+                waiting_location_id=waiting_location_info.id,
+            )
+        )
 
         pilot_fsm.deliver_pilot(waiting_location_info.id)
         pilot_path.set_path(waiting_location_path)
@@ -327,7 +391,10 @@ class DefaultVesselStrategy():
         fsm = self.world.component_for_entity(entity_id, VesselStateMachine)
         vessel_info = self.world.component_for_entity(entity_id, VesselInfo)
 
-        if vessel_info.tugs_required and fsm.current() == VesselState.WAITING_FOR_PILOTS_RENDEZVOUS:
+        if (
+            vessel_info.tugs_required
+            and fsm.current() == VesselState.WAITING_FOR_PILOTS_RENDEZVOUS
+        ):
             self.handle_go_to_tugs_rendezvous(message, entity_id, vessel_info)
             return
 
@@ -338,7 +405,10 @@ class DefaultVesselStrategy():
             #
             # Check if all tugs are at the rendezvous location, if not,
             # return without proceeding to the berth
-            tug_fsms = [self.world.component_for_entity(tug_id, TugStateMachine) for tug_id in fsm.tugboats]
+            tug_fsms = [
+                self.world.component_for_entity(tug_id, TugStateMachine)
+                for tug_id in fsm.tugboats
+            ]
 
             for tug_fsm in tug_fsms:
                 if tug_fsm.current() != TugState.WAITING_AT_RENDEZVOUS:
@@ -363,15 +433,19 @@ class DefaultVesselStrategy():
             fsm.pilot_boarded = True
 
             _, (waiting_location_info, _) = WaitingLocationList(
-                world=self.world).random_location_by_type(LocationType.PILOTS_STORAGE)
+                world=self.world
+            ).random_location_by_type(LocationType.PILOTS_STORAGE)
 
             pilot_position = self.world.component_for_entity(fsm.pilot, Position)
             pilot_path = self.world.component_for_entity(fsm.pilot, VesselPath)
 
-            waiting_location_path = self.path_finder.pilot_rendezvous_pilot_waiting_location_path(
-                pilot_position=pilot_position.lonlat,
-                rendezvous_id=fsm.pilot_rendezvous_id,
-                waiting_location_id=waiting_location_info.id)
+            waiting_location_path = (
+                self.path_finder.pilot_rendezvous_pilot_waiting_location_path(
+                    pilot_position=pilot_position.lonlat,
+                    rendezvous_id=fsm.pilot_rendezvous_id,
+                    waiting_location_id=waiting_location_info.id,
+                )
+            )
 
             pilot_fsm.deliver_pilot(waiting_location_info.id)
             pilot_path.set_path(waiting_location_path)
@@ -398,8 +472,7 @@ class DefaultVesselStrategy():
         if self.lock_arrival_resources(entity_id, vessel_info):
             # The offset is added to make sure the next
             # destination node has a distance != 0
-            position.update_position(
-                np.array(path.get_origin()) + VESSEL_ORIGIN_OFFSET)
+            position.update_position(np.array(path.get_origin()) + VESSEL_ORIGIN_OFFSET)
 
     def handle_docked_at_terminal(self, message, entity_id, vessel_info):
         fsm = self.world.component_for_entity(entity_id, VesselStateMachine)
@@ -407,14 +480,20 @@ class DefaultVesselStrategy():
         velocity = self.world.component_for_entity(entity_id, Velocity)
 
         destination_berth_id = fsm.destination_berth_id
-        _, (_, berth_info, _) = BerthList(world=self.world).filter_by_ids([destination_berth_id])[0]
+        _, (_, berth_info, _) = BerthList(world=self.world).filter_by_ids(
+            [destination_berth_id]
+        )[0]
 
         # FIXME: hmm why sometimes destination_berth_fsm is None here? It shouldn't be ever?
         if fsm.destination_berth_fsm is None:
-            fsm.destination_berth_fsm = self.world.component_for_entity(destination_berth_id, BerthStateMachine)
+            fsm.destination_berth_fsm = self.world.component_for_entity(
+                destination_berth_id, BerthStateMachine
+            )
             if fsm.destination_berth_fsm.current_vessel_fsm is None:
                 fsm.destination_berth_fsm.book(fsm)
-            assert fsm.destination_berth_fsm.current_vessel_fsm == fsm, "The booked vessel at the berth must be the same!"
+            assert (
+                fsm.destination_berth_fsm.current_vessel_fsm == fsm
+            ), "The booked vessel at the berth must be the same!"
 
         fsm.servicing(vessel_info)
 
@@ -433,13 +512,17 @@ class DefaultVesselStrategy():
                 tug_path = self.world.component_for_entity(tug_id, VesselPath)
                 tug_position = self.world.component_for_entity(tug_id, Position)
 
-                _, (waiting_location_info, _) = \
-                    WaitingLocationList(world=self.world).random_location_by_type(LocationType.TUGBOATS_STORAGE)
+                _, (waiting_location_info, _) = WaitingLocationList(
+                    world=self.world
+                ).random_location_by_type(LocationType.TUGBOATS_STORAGE)
 
-                waiting_location_path = self.path_finder.tugs_berth_waiting_location_path(
-                    tug_position=tug_position.lonlat,
-                    berth_info=berth_info,
-                    waiting_location_id=waiting_location_info.id)
+                waiting_location_path = (
+                    self.path_finder.tugs_berth_waiting_location_path(
+                        tug_position=tug_position.lonlat,
+                        berth_info=berth_info,
+                        waiting_location_id=waiting_location_info.id,
+                    )
+                )
 
                 tug_path.set_path(waiting_location_path)
                 tug_fsm.done_tugging(waiting_location_info.id)
@@ -450,22 +533,25 @@ class DefaultVesselStrategy():
             fsm = self.world.component_for_entity(entity_id, VesselStateMachine)
 
             # If neither pilot nor tugs are required, send the vessel out of the port
-            if not vessel_info.pilot_required and (not vessel_info.tugs_required or self.tug_designator is None):
+            if not vessel_info.pilot_required and (
+                not vessel_info.tugs_required or self.tug_designator is None
+            ):
                 # Compute a path and send the vessel down that path
                 vessel_path = self.world.component_for_entity(entity_id, VesselPath)
                 position = self.world.component_for_entity(entity_id, Position)
 
                 spawn_path = self._route_to_spawn(
-                    fsm.destination_berth_id,
-                    position,
-                    vessel_info)
+                    fsm.destination_berth_id, position, vessel_info
+                )
 
                 vessel_path.set_path(spawn_path)
 
                 fsm.leave()
                 return
 
-            _, (_, berth_info, _) = BerthList(world=self.world).filter_by_ids([fsm.destination_berth_id])[0]
+            _, (_, berth_info, _) = BerthList(world=self.world).filter_by_ids(
+                [fsm.destination_berth_id]
+            )[0]
 
             # Request a pilot
             if vessel_info.pilot_required and fsm.pilot is None:
@@ -478,7 +564,8 @@ class DefaultVesselStrategy():
                 pilot_berth_path = self.path_finder.pilot_waiting_location_berth_path(
                     pilot_position=pilot_position.lonlat,
                     berth_id=berth_info.id,
-                    waiting_location_id=pilot_fsm.waiting_location_id)
+                    waiting_location_id=pilot_fsm.waiting_location_id,
+                )
 
                 pilot_path.set_path(pilot_berth_path)
                 pilot_fsm.go_to_berth(entity_id, fsm.destination_berth_id)
@@ -487,7 +574,11 @@ class DefaultVesselStrategy():
                 fsm.wait_for_tugs_pilots()
 
             # Request tugs
-            if vessel_info.tugs_required and self.tug_designator is not None and fsm.tugboats is None:
+            if (
+                vessel_info.tugs_required
+                and self.tug_designator is not None
+                and fsm.tugboats is None
+            ):
                 tug_ids = self.tug_designator(entity_id)
 
                 for tug_id in tug_ids:
@@ -498,7 +589,8 @@ class DefaultVesselStrategy():
                     tug_berth_path = self.path_finder.tugs_berth_waiting_location_path(
                         tug_position=tug_position.lonlat,
                         berth_info=berth_info,
-                        waiting_location_id=tug_fsm.waiting_location_id)
+                        waiting_location_id=tug_fsm.waiting_location_id,
+                    )
                     tug_berth_path = self.path_finder.reverse_path(tug_berth_path)
 
                     tug_path.set_path(tug_berth_path)
@@ -522,15 +614,19 @@ class DefaultVesselStrategy():
             # If pilot vessel is at the berth, pilot boards and pilot vessel goes back to waiting location
             if pilot_fsm.current() == PilotState.WAITING_AT_BERTH:
                 _, (waiting_location_info, _) = WaitingLocationList(
-                    world=self.world).random_location_by_type(LocationType.PILOTS_STORAGE)
+                    world=self.world
+                ).random_location_by_type(LocationType.PILOTS_STORAGE)
 
                 pilot_path = self.world.component_for_entity(fsm.pilot, VesselPath)
                 pilot_position = self.world.component_for_entity(fsm.pilot, Position)
 
-                waiting_location_path = self.path_finder.berth_pilot_waiting_location_path(
-                    pilot_position=pilot_position.lonlat,
-                    berth_id=fsm.destination_berth_id,
-                    waiting_location_id=waiting_location_info.id)
+                waiting_location_path = (
+                    self.path_finder.berth_pilot_waiting_location_path(
+                        pilot_position=pilot_position.lonlat,
+                        berth_id=fsm.destination_berth_id,
+                        waiting_location_id=waiting_location_info.id,
+                    )
+                )
                 # waiting_location_path = self.path_finder.reverse_path(waiting_location_path)
 
                 pilot_fsm.deliver_pilot(waiting_location_info.id)
@@ -546,7 +642,10 @@ class DefaultVesselStrategy():
         # proceeding out of the port
         if vessel_info.tugs_required:
             if fsm.tugboats:
-                tug_fsms = [self.world.component_for_entity(tug_id, TugStateMachine) for tug_id in fsm.tugboats]
+                tug_fsms = [
+                    self.world.component_for_entity(tug_id, TugStateMachine)
+                    for tug_id in fsm.tugboats
+                ]
             else:
                 return
 
@@ -559,9 +658,8 @@ class DefaultVesselStrategy():
                     return
 
         spawn_path = self._route_to_spawn(
-            fsm.destination_berth_id,
-            position,
-            vessel_info)
+            fsm.destination_berth_id, position, vessel_info
+        )
 
         path.set_path(spawn_path)
 
@@ -592,12 +690,17 @@ class DefaultVesselStrategy():
                 tug_fsm = self.world.component_for_entity(tug_id, TugStateMachine)
                 tug_path = self.world.component_for_entity(tug_id, VesselPath)
                 tug_position = self.world.component_for_entity(tug_id, Position)
-                
-                _, (waiting_location_info, _) = WaitingLocationList(world=self.world).random_location_by_type(LocationType.TUGBOATS_STORAGE)
-                waiting_location_path = self.path_finder.tugs_ocean_waiting_location_path(
-                    tug_position=tug_position.lonlat,
-                    waiting_location_id=waiting_location_info.id)
-                
+
+                _, (waiting_location_info, _) = WaitingLocationList(
+                    world=self.world
+                ).random_location_by_type(LocationType.TUGBOATS_STORAGE)
+                waiting_location_path = (
+                    self.path_finder.tugs_ocean_waiting_location_path(
+                        tug_position=tug_position.lonlat,
+                        waiting_location_id=waiting_location_info.id,
+                    )
+                )
+
                 tug_path.set_path(waiting_location_path)
                 tug_fsm.done_tugging(waiting_location_info.id)
                 fsm.tugboats = None
@@ -609,7 +712,10 @@ class DefaultVesselStrategy():
 
         if fsm.tugboats:
             # Check if the newly assigned tug arrived at the location, if not - return
-            tug_fsms = [self.world.component_for_entity(tug_id, TugStateMachine) for tug_id in fsm.tugboats]
+            tug_fsms = [
+                self.world.component_for_entity(tug_id, TugStateMachine)
+                for tug_id in fsm.tugboats
+            ]
         else:
             return
 
@@ -631,7 +737,10 @@ class DefaultVesselStrategy():
                 for tug_fsm in tug_fsms:
                     tug_fsm.start_tugging_out()
             else:
-                raise Exception(f"Could not handle a tugboat fix for a vessel that was in state {fsm.state_before_failure} before the failure")
+                raise Exception(
+                    f"Could not handle a tugboat fix for a vessel that was in state {fsm.state_before_failure} before the failure"
+                )
+
     def _select_pilot(self):
         # Fetch the pilot finite state machine components in the world
         pilots = self.world.get_components(PilotStateMachine)
@@ -649,11 +758,12 @@ class DefaultVesselStrategy():
         for berth_info in berths_info:
             if vessel_position is not None:
                 ocean_berth_paths = self.path_finder.ocean_berth_paths(
-                    vessel_position=vessel_position.lonlat,
-                    berth_id=berth_info.id)
+                    vessel_position=vessel_position.lonlat, berth_id=berth_info.id
+                )
             else:
                 ocean_berth_paths = self.path_finder.ocean_berth_paths(
-                    berth_id=berth_info.id)
+                    berth_id=berth_info.id
+                )
 
             if len(ocean_berth_paths) > 0:
                 path = ocean_berth_paths[0]
@@ -664,12 +774,15 @@ class DefaultVesselStrategy():
     def _add_offset_to_vessel_position(self, position, path):
         # The offset is added to make sure the next
         # destination node has a distance != 0
-        position.update_position(
-            np.array(path.get_origin()) + VESSEL_ORIGIN_OFFSET)
+        position.update_position(np.array(path.get_origin()) + VESSEL_ORIGIN_OFFSET)
 
     def _berths_for_vessel(self, vessel_info):
-        available_berths = BerthList(world=self.world).filter_by_available(BerthState.AVAILABLE)
-        available_berths = available_berths.filter_by_ids(self.path_finder.ocean_connected_berth_ids())
+        available_berths = BerthList(world=self.world).filter_by_available(
+            BerthState.AVAILABLE
+        )
+        available_berths = available_berths.filter_by_ids(
+            self.path_finder.ocean_connected_berth_ids()
+        )
 
         berths = self.berth_designator(vessel_info, list(available_berths))
 
@@ -677,10 +790,12 @@ class DefaultVesselStrategy():
 
     def _select_berth(self, vessel_path, vessel_info, vessel_position):
         """
-            Selects an available berth that can serve the target vessel
+        Selects an available berth that can serve the target vessel
         """
         berths_info = self._berths_for_vessel(vessel_info)
-        ocean_berth_path, berth_info = self._select_path(berths_info, vessel_position, vessel_info)
+        ocean_berth_path, berth_info = self._select_path(
+            berths_info, vessel_position, vessel_info
+        )
 
         if ocean_berth_path is None:
             raise NoPathException(f"No ocean -> berth path for vessel {vessel_info}")
@@ -691,52 +806,77 @@ class DefaultVesselStrategy():
 
     def _select_berth_tug_rendezvous(self, vessel_path, vessel_info, vessel_position):
         """
-            Selects an available berth that can serve the target vessel
+        Selects an available berth that can serve the target vessel
         """
         berths_info = self._berths_for_vessel(vessel_info)
 
         for berth_info in berths_info:
             try:
                 tug_rv_berth_paths = self.path_finder.tug_rendezvous_berth_paths(
-                    final_section=berth_info.section,
-                    berth_id=berth_info.id)
+                    final_section=berth_info.section, berth_id=berth_info.id
+                )
 
-                ocean_tug_rv_paths, tug_rendezvous_id = self.path_finder.ocean_tug_rendezvous_paths(
-                    vessel_position=vessel_position.lonlat,
-                    final_section=berth_info.section)
+                ocean_tug_rv_paths, tug_rendezvous_id = (
+                    self.path_finder.ocean_tug_rendezvous_paths(
+                        vessel_position=vessel_position.lonlat,
+                        final_section=berth_info.section,
+                    )
+                )
 
                 if len(tug_rv_berth_paths) != 0 and len(ocean_tug_rv_paths) != 0:
-                    return berth_info, random.choice(ocean_tug_rv_paths), random.choice(tug_rv_berth_paths), \
-                           tug_rendezvous_id
+                    return (
+                        berth_info,
+                        random.choice(ocean_tug_rv_paths),
+                        random.choice(tug_rv_berth_paths),
+                        tug_rendezvous_id,
+                    )
             except:
                 pass
 
         return None, None, None, None
 
-    def _select_berth_tug_rendezvous_pilot_rendezvous(self, vessel_path, vessel_info, vessel_position):
+    def _select_berth_tug_rendezvous_pilot_rendezvous(
+        self, vessel_path, vessel_info, vessel_position
+    ):
         """
-            Selects an available berth that can serve the target vessel
+        Selects an available berth that can serve the target vessel
         """
         berths_info = self._berths_for_vessel(vessel_info)
 
         for berth_info in berths_info:
             try:
-                tug_rv_berth_paths, tug_rv_id = self.path_finder.tug_rendezvous_berth_paths(
-                    final_section=berth_info.section,
-                    berth_id=berth_info.id)
+                tug_rv_berth_paths, tug_rv_id = (
+                    self.path_finder.tug_rendezvous_berth_paths(
+                        final_section=berth_info.section, berth_id=berth_info.id
+                    )
+                )
 
-                ocean_pilot_rv_paths, pilot_rv_id = self.path_finder.ocean_pilot_rendezvous_paths(
-                    vessel_position=vessel_position.lonlat,
-                    vessel_class=vessel_info.vessel_class)
+                ocean_pilot_rv_paths, pilot_rv_id = (
+                    self.path_finder.ocean_pilot_rendezvous_paths(
+                        vessel_position=vessel_position.lonlat,
+                        vessel_class=vessel_info.vessel_class,
+                    )
+                )
 
-                pilot_rv_tug_rv_paths = self.path_finder.pilot_rendezvous_tug_rendezvous_paths(
-                    pilot_rv_id=pilot_rv_id,
-                    tug_rv_id=tug_rv_id)
+                pilot_rv_tug_rv_paths = (
+                    self.path_finder.pilot_rendezvous_tug_rendezvous_paths(
+                        pilot_rv_id=pilot_rv_id, tug_rv_id=tug_rv_id
+                    )
+                )
 
-                if len(tug_rv_berth_paths) != 0 and len(pilot_rv_tug_rv_paths) != 0 \
-                        and len(ocean_pilot_rv_paths) != 0:
-                    return berth_info, random.choice(ocean_pilot_rv_paths), random.choice(pilot_rv_tug_rv_paths), \
-                           random.choice(tug_rv_berth_paths), tug_rv_id, pilot_rv_id
+                if (
+                    len(tug_rv_berth_paths) != 0
+                    and len(pilot_rv_tug_rv_paths) != 0
+                    and len(ocean_pilot_rv_paths) != 0
+                ):
+                    return (
+                        berth_info,
+                        random.choice(ocean_pilot_rv_paths),
+                        random.choice(pilot_rv_tug_rv_paths),
+                        random.choice(tug_rv_berth_paths),
+                        tug_rv_id,
+                        pilot_rv_id,
+                    )
             except:
                 pass
 
@@ -744,23 +884,30 @@ class DefaultVesselStrategy():
 
     def _select_berth_pilot_rendezvous(self, vessel_path, vessel_info, vessel_position):
         """
-            Selects an available berth that can serve the target vessel
+        Selects an available berth that can serve the target vessel
         """
         berths_info = self._berths_for_vessel(vessel_info)
 
         for berth_info in berths_info:
             try:
                 pilot_rv_berth_paths = self.path_finder.pilot_rendezvous_berth_paths(
-                    vessel_class=vessel_info.vessel_class,
-                    berth_id=berth_info.id)
+                    vessel_class=vessel_info.vessel_class, berth_id=berth_info.id
+                )
 
-                ocean_pilot_rv_paths, pilot_rendezvous_id = self.path_finder.ocean_pilot_rendezvous_paths(
-                    vessel_position=vessel_position.lonlat,
-                    vessel_class=vessel_info.vessel_class)
+                ocean_pilot_rv_paths, pilot_rendezvous_id = (
+                    self.path_finder.ocean_pilot_rendezvous_paths(
+                        vessel_position=vessel_position.lonlat,
+                        vessel_class=vessel_info.vessel_class,
+                    )
+                )
 
                 if len(pilot_rv_berth_paths) != 0 and len(ocean_pilot_rv_paths) != 0:
-                    return berth_info, random.choice(ocean_pilot_rv_paths), random.choice(pilot_rv_berth_paths),\
-                           pilot_rendezvous_id
+                    return (
+                        berth_info,
+                        random.choice(ocean_pilot_rv_paths),
+                        random.choice(pilot_rv_berth_paths),
+                        pilot_rendezvous_id,
+                    )
             except NoPathException as _:
                 pass
 
@@ -768,25 +915,25 @@ class DefaultVesselStrategy():
 
     def _select_and_route_to_anchorage(self, ent, vessel_path, pos):
         """
-            Selects a suitable anchorage for the target vessel
+        Selects a suitable anchorage for the target vessel
         """
         selected_anchorage = self.anchorage_designator(self.world, ent)
         _, (anchorage_info, anchorage_fsm, anchorage_shape) = selected_anchorage
 
         ocean_anchorage_path = self.path_finder.anchorage_path(
-            pos.lonlat,
-            anchorage_shape.centroid)
+            pos.lonlat, anchorage_shape.centroid
+        )
         vessel_path.set_path(ocean_anchorage_path)
 
         return anchorage_info.name, anchorage_fsm
 
     def _route_to_spawn(self, berth_id, vessel_position, vessel_info):
         """
-            Computes a route from a berth to the ocean
+        Computes a route from a berth to the ocean
         """
         berths = BerthList(world=self.world).filter_by_ids([berth_id])
         berths_info = [b[1][1] for b in berths]
 
-        ocean_berth_path, _ = self._select_path(berths_info, None, vessel_info) 
+        ocean_berth_path, _ = self._select_path(berths_info, None, vessel_info)
 
         return self.path_finder.reverse_path(ocean_berth_path)

@@ -4,7 +4,7 @@ from components import AnchorageInfo, Shape
 from components.fsm import AnchorageStateMachine
 
 
-class AnchoragesInitializer():
+class AnchoragesInitializer:
     """Generates anchorages entities from a geojson file input."""
 
     def __init__(self, world, filename):
@@ -28,10 +28,13 @@ class AnchoragesInitializer():
             properties["id"],
             properties["name"],
             float(properties["max_draught"]),
-            properties["use"])
+            properties["use"],
+        )
 
-        self.world.add_component(anchorage, Shape(shape_points=row["geometry"]["coordinates"]))
+        self.world.add_component(
+            anchorage, Shape(shape_points=row["geometry"]["coordinates"])
+        )
         self.world.add_component(anchorage, anchorage_info)
         self.world.add_component(anchorage, AnchorageStateMachine())
-        
+
         return anchorage

@@ -1,13 +1,14 @@
 class MessageBroker:
     """Singleton class that can be used to send messages between entities."""
+
     __instance = None
 
     @staticmethod
     def get_instance():
         if MessageBroker.__instance == None:
             MessageBroker()
-        
-        return MessageBroker.__instance 
+
+        return MessageBroker.__instance
 
     def __init__(self):
         """Private constructor."""
@@ -21,13 +22,13 @@ class MessageBroker:
     def send_message(self, message):
         if message.destination not in self._messages:
             self._messages[message.destination] = []
-        
+
         self._messages[message.destination].append(message)
 
     def remove_message(self, message_id, destination_queue):
-        filtered_messages = list(filter(
-            lambda x: x.id != message_id,
-            self._messages[destination_queue]))
+        filtered_messages = list(
+            filter(lambda x: x.id != message_id, self._messages[destination_queue])
+        )
 
         self._messages[destination_queue] = filtered_messages
 

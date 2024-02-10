@@ -1,7 +1,7 @@
-from environment.queries import fetch_pilots
 from components.fsm.states import PilotState
-from processors.base_processor import BaseProcessor
+from environment.queries import fetch_pilots
 from exceptions import NoPathException, PathTerminatedException
+from processors.base_processor import BaseProcessor
 from processors.utils import target_reached
 
 
@@ -14,8 +14,8 @@ class PilotGoalFormulatorProcessor(BaseProcessor):
 
     def formulate_goal(self, ent, pilot_path, fsm, vel):
         """
-            Retrieves the next node in path if a path exists, otherwise notifies the
-            HM of its current status
+        Retrieves the next node in path if a path exists, otherwise notifies the
+        HM of its current status
         """
         try:
             _ = pilot_path.get_next_destination()

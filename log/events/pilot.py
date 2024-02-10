@@ -1,5 +1,6 @@
 from datetime import datetime
-from colored import fg, attr
+
+from colored import attr, fg
 
 
 class PilotEvent:
@@ -44,7 +45,7 @@ class PilotEvent:
             self.pilot_info.max_draught,
             self.pilot_info.actual_draught,
             self.velocity.velocity,
-            event_type
+            event_type,
         ]
 
     @classmethod
@@ -57,5 +58,5 @@ class PilotEvent:
             "max_draught",
             "actual_draught",
             "speed",
-            "event"
+            "event",
         ]

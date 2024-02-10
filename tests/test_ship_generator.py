@@ -1,12 +1,13 @@
-import pytest
 import numpy as np
+import pytest
 from scipy import stats
 
 from components import VesselInfo
-from .constants import MOCK_SPAWN_FILENAME
 from processors.generators import VesselGeneratorProcessor
-from .fixtures import world_and_timer_processor
 from utils.timer.timer_status import TimerStatus
+
+from .constants import MOCK_SPAWN_FILENAME
+from .fixtures import world_and_timer_processor
 
 
 @pytest.fixture()
@@ -18,7 +19,8 @@ def vessels_world():
         world,
         distribution_lambda,
         lambda: VesselInfo(length=10, width=5, actual_draught=10, max_draught=12),
-        MOCK_SPAWN_FILENAME)
+        MOCK_SPAWN_FILENAME,
+    )
     world.add_processor(vessel_generator)
 
     yield world, vessel_generator, time_processor, distribution_lambda
@@ -57,9 +59,7 @@ def test_distribution(vessels_world):
     assert len(world.get_components(VesselInfo)) == samples
     assert len(normal_samples) == len(sampled_inter_arrival_times)
 
-    t_stat, p_value = stats.ttest_ind(
-        normal_samples,
-        sampled_inter_arrival_times)
+    t_stat, p_value = stats.ttest_ind(normal_samples, sampled_inter_arrival_times)
 
     assert p_value > alpha
     assert t_stat < t_critical

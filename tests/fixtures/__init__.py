@@ -1,13 +1,13 @@
 import esper
 import pytest
 
-from processors.core import TimerProcessor
-from utils.timer import TimerScheduler
-
-from tests.constants import MOCK_BERTHS_FILENAME
 from environment.initializers import BerthsInitializer
-from tests.fixtures.berth_service_time import MockBerthServiceDistributionFactory
+from processors.core import TimerProcessor
+from tests.constants import MOCK_BERTHS_FILENAME
+from tests.fixtures.berth_service_time import \
+    MockBerthServiceDistributionFactory
 from tests.fixtures.vessel_ctype import VesselContentType
+from utils.timer import TimerScheduler
 
 
 def world_and_timer_processor():
@@ -35,5 +35,5 @@ def berths_sim_world():
         world,
         MOCK_BERTHS_FILENAME,
         VesselContentType,
-        MockBerthServiceDistributionFactory()
+        MockBerthServiceDistributionFactory(),
     )

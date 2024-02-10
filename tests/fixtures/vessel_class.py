@@ -6,9 +6,7 @@ class VesselClass(Enum):
 
     @classmethod
     def from_class_code(cls, code):
-        mapping = {
-            "1": VesselClass.CLASS_1
-        }
+        mapping = {"1": VesselClass.CLASS_1}
 
         assert code in mapping, "Invalid class code!"
         return mapping[code]

@@ -1,8 +1,6 @@
 from environment.queries import fetch_pilots
-
-from processors.base_movement_processor import BaseMovementProcessor
-
 from exceptions import NoPathException, PathTerminatedException
+from processors.base_movement_processor import BaseMovementProcessor
 
 
 class PilotMovementProcessor(BaseMovementProcessor):

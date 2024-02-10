@@ -1,2 +1,2 @@
-from .vessel import VesselGeneratorProcessor
 from .fixed_vessel import FixedVesselGeneratorProcessor
+from .vessel import VesselGeneratorProcessor

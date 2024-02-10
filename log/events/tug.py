@@ -1,5 +1,6 @@
 from datetime import datetime
-from colored import fg, attr
+
+from colored import attr, fg
 
 
 class TugEvent:
@@ -44,7 +45,7 @@ class TugEvent:
             self.tug_info.max_draught,
             self.tug_info.actual_draught,
             self.velocity.velocity,
-            event_type
+            event_type,
         ]
 
     @classmethod
@@ -57,5 +58,5 @@ class TugEvent:
             "max_draught",
             "actual_draught",
             "speed",
-            "event"
+            "event",
         ]

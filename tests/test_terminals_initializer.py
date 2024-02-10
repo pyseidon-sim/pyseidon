@@ -1,15 +1,15 @@
-import pytest
 import esper
+import pytest
 
-from .fixtures.vessel_ctype import VesselContentType
-from environment.queries import BerthList
-from .constants import MOCK_BERTHS_FILENAME, MOCK_BERTHS_COUNT
-from environment.initializers import BerthsInitializer
-from components import Position, BerthInfo
+from components import BerthInfo, Position
 from components.fsm import BerthStateMachine
-from .fixtures.berth_service_time import MockBerthServiceDistributionFactory
-
+from environment.initializers import BerthsInitializer
+from environment.queries import BerthList
 from tests.fixtures import berths_sim_world
+
+from .constants import MOCK_BERTHS_COUNT, MOCK_BERTHS_FILENAME
+from .fixtures.berth_service_time import MockBerthServiceDistributionFactory
+from .fixtures.vessel_ctype import VesselContentType
 
 
 def test_create_berths(berths_sim_world):
@@ -20,6 +20,7 @@ def test_create_berths(berths_sim_world):
     berths = list(BerthList(world=world))
     assert len(berths) == MOCK_BERTHS_COUNT
 
+
 def test_create_berth(berths_sim_world):
     world, initializer = berths_sim_world
     berths_data = initializer.berths_data
@@ -28,7 +29,7 @@ def test_create_berth(berths_sim_world):
     # name                      'Berth 1'
     # lat                       51.82033
     # lon                        3.86652
-    # description                       
+    # description
     # type                          quay
     # id                               1
     # max_quay_length                200

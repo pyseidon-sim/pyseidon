@@ -1,5 +1,6 @@
-from .timer_status import TimerStatus
 from utils import is_number
+
+from .timer_status import TimerStatus
 
 
 class SimulationTimer:
@@ -14,6 +15,7 @@ class SimulationTimer:
     arguments can be passed in via kwargs. Note that the argument
     names must match exactly as in the target function signature.
     """
+
     def __init__(self, duration=None, target_function=None, **kwargs):
         self._validate_init(duration, target_function)
 
@@ -22,7 +24,7 @@ class SimulationTimer:
         self._status = TimerStatus.IN_PROGRESS
         self.target_function = target_function
         self.arg_dict = kwargs
-    
+
     def _validate_init(self, duration, target_function):
         if duration is None or not is_number(duration):
             raise ValueError("A float timer duration is required!")
@@ -41,12 +43,14 @@ class SimulationTimer:
 
     def completed(self):
         """Returns whether the timer has been fired."""
-        return self._status == TimerStatus.FIRED or self._status == TimerStatus.INVALIDATED
+        return (
+            self._status == TimerStatus.FIRED or self._status == TimerStatus.INVALIDATED
+        )
 
     @property
     def status(self):
         return self._status
-    
+
     @property
     def elapsed_seconds(self):
         return self._elapsed_seconds

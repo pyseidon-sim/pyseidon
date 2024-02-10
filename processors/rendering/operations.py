@@ -1,16 +1,15 @@
-import numpy as np
+from collections import defaultdict
 
-from processors.utils import lonlat_array_to_screen
-from processors.rendering.base_renderer import BaseRenderer
+import numpy as np
 
 from components import AnchorageInfo, TugInfo
 from components.fsm.anchorages import AnchorageStateMachine
 from components.fsm.berth import BerthStateMachine
 from components.fsm.pilot import PilotStateMachine
-from components.fsm.states import BerthState, TugState, PilotState
+from components.fsm.states import BerthState, PilotState, TugState
 from components.fsm.tug import TugStateMachine
-
-from collections import defaultdict
+from processors.rendering.base_renderer import BaseRenderer
+from processors.utils import lonlat_array_to_screen
 
 
 class OperationsRenderer(BaseRenderer):
@@ -22,14 +21,9 @@ class OperationsRenderer(BaseRenderer):
     # Holds the message displayed at the top left corner.
     # The `message` field contains a message split in
     # x lines (one line per array element)
-    hover = {
-        'ent': -1,
-        'message': ['Hover over a vessel or berth to see details']
-    }
+    hover = {"ent": -1, "message": ["Hover over a vessel or berth to see details"]}
 
-    operational = {
-        'message': ['']
-    }
+    operational = {"message": [""]}
 
     def _process(self, dt):
         self.painter.set_color([0, 0, 0])
@@ -43,14 +37,15 @@ class OperationsRenderer(BaseRenderer):
         top_left_corner = np.array([proj.bbox().west, proj.bbox().north])
         tl_x, tl_y = lonlat_array_to_screen(proj, top_left_corner)
 
-        for i, message in enumerate(OperationsRenderer.hover['message']):
+        for i, message in enumerate(OperationsRenderer.hover["message"]):
             painter.labels(
                 [tl_x + 5],
                 [tl_y - (25 * i)],
                 [message],
                 font_size=14,
-                anchor_x='left',
-                anchor_y='top')
+                anchor_x="left",
+                anchor_y="top",
+            )
 
     def _update_operations_message(self):
         occupied_berths, num_berths = self._get_busy_berths_count()
@@ -58,35 +53,45 @@ class OperationsRenderer(BaseRenderer):
 
         anchorages_statuses = self._get_anchorage_occupancy_messages()
 
-        OperationsRenderer.operational['message'] = []
-        OperationsRenderer.operational['message'].append("Anchorage occupancy: ")
-        OperationsRenderer.operational['message'].extend(anchorages_statuses)
+        OperationsRenderer.operational["message"] = []
+        OperationsRenderer.operational["message"].append("Anchorage occupancy: ")
+        OperationsRenderer.operational["message"].extend(anchorages_statuses)
 
-        OperationsRenderer.operational['message'].append(f"Berth occupancy: {occupied_berths}/{num_berths}")
-        OperationsRenderer.operational['message'].append(f"Pilot vessel occupancy: {occupied_pilots}/{num_pilots}")
+        OperationsRenderer.operational["message"].append(
+            f"Berth occupancy: {occupied_berths}/{num_berths}"
+        )
+        OperationsRenderer.operational["message"].append(
+            f"Pilot vessel occupancy: {occupied_pilots}/{num_pilots}"
+        )
 
         if self.tug_companies is not None:
             info = self._get_busy_tugs_count_by_company()
 
             for company in self.tug_companies:
-                OperationsRenderer.operational['message'].append(f"{company} "
-                                                                 f"tugboat occupancy: "
-                                                                 f"{info[company]['busy']}/{info[company]['num']}")
+                OperationsRenderer.operational["message"].append(
+                    f"{company} "
+                    f"tugboat occupancy: "
+                    f"{info[company]['busy']}/{info[company]['num']}"
+                )
         else:
             occupied_tugs, num_tugs = self._get_busy_tugs_count()
-            OperationsRenderer.operational['message'].append(f"Tugboat occupancy: {occupied_tugs}/{num_tugs}")
+            OperationsRenderer.operational["message"].append(
+                f"Tugboat occupancy: {occupied_tugs}/{num_tugs}"
+            )
 
         # Reverse the messages to anchorages are rendered first
         # (rendering is bottom to top for operational statistics)
-        OperationsRenderer.operational['message'].reverse()
+        OperationsRenderer.operational["message"].reverse()
 
     def _get_anchorage_occupancy_messages(self):
         anchorages = self.world.get_components(AnchorageInfo)
         anchorages_statuses = []
 
-        for (id, anchorage) in anchorages:
+        for id, anchorage in anchorages:
             anchorage_fsm = self.world.component_for_entity(id, AnchorageStateMachine)
-            anchorages_statuses.append(f"{anchorage[0].name}: {anchorage_fsm.occupancy()}")
+            anchorages_statuses.append(
+                f"{anchorage[0].name}: {anchorage_fsm.occupancy()}"
+            )
 
         return anchorages_statuses
 
@@ -94,10 +99,13 @@ class OperationsRenderer(BaseRenderer):
         berths = self.world.get_components(BerthStateMachine)
         occupied_berths = 0
 
-        for (id, berth) in berths:
+        for id, berth in berths:
             berth_fsm = berth[0]
 
-            if berth_fsm.current() == BerthState.SERVING_VESSEL or berth_fsm.current() == BerthState.WAITING_FOR_VESSEL:
+            if (
+                berth_fsm.current() == BerthState.SERVING_VESSEL
+                or berth_fsm.current() == BerthState.WAITING_FOR_VESSEL
+            ):
                 occupied_berths += 1
 
         return occupied_berths, len(berths)
@@ -106,7 +114,7 @@ class OperationsRenderer(BaseRenderer):
         pilots = self.world.get_components(PilotStateMachine)
         occupied_pilots = 0
 
-        for (id, pilot) in pilots:
+        for id, pilot in pilots:
             pilot_fsm = pilot[0]
 
             if pilot_fsm.current() in PilotState.busy_states():
@@ -118,7 +126,7 @@ class OperationsRenderer(BaseRenderer):
         tugs = self.world.get_components(TugStateMachine)
         occupied_tugs = 0
 
-        for (id, tug) in tugs:
+        for id, tug in tugs:
             tug_fsm = tug[0]
 
             if tug_fsm.current() in TugState.busy_states():
@@ -131,15 +139,15 @@ class OperationsRenderer(BaseRenderer):
 
         tugs = self.world.get_components(TugStateMachine)
 
-        for (id, tug) in tugs:
+        for id, tug in tugs:
             tug_fsm = tug[0]
 
             tug_info = self.world.component_for_entity(id, TugInfo)
 
             if tug_fsm.current() in TugState.busy_states():
-                info[tug_info.company_name]['busy'] += 1
+                info[tug_info.company_name]["busy"] += 1
 
-            info[tug_info.company_name]['num'] += 1
+            info[tug_info.company_name]["num"] += 1
 
         return info
 
@@ -147,11 +155,12 @@ class OperationsRenderer(BaseRenderer):
         bottom_left_corner = np.array([proj.bbox().west, proj.bbox().south])
         bl_x, bl_y = lonlat_array_to_screen(proj, bottom_left_corner)
 
-        for i, message in enumerate(OperationsRenderer.operational['message']):
+        for i, message in enumerate(OperationsRenderer.operational["message"]):
             painter.labels(
                 [bl_x + 5],
                 [bl_y + (25 * i)],
                 [message],
                 font_size=14,
-                anchor_x='left',
-                anchor_y='bottom')
+                anchor_x="left",
+                anchor_y="bottom",
+            )

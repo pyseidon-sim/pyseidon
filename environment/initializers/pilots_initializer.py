@@ -2,22 +2,20 @@ import copy
 import json
 import random
 
-from utils import shapes
 from shapely.geometry import Polygon
 
-from environment import RunInfo
-
-from components import PilotInfo
-from components import Shape, LocationInfo, LocationType, \
-    Position, VesselPath, Velocity, Course
+from components import (Course, LocationInfo, LocationType, PilotInfo,
+                        Position, Shape, Velocity, VesselPath)
 from components.fsm import PilotStateMachine
-
-from log.pilot import PilotEventLogger
+from environment import RunInfo
 from log.events.pilot import PilotEvent
+from log.pilot import PilotEventLogger
+from utils import shapes
 
 
 class PilotsInitializer:
     """Generates pilot world entities from a csv file input."""
+
     DEFAULT_PILOT_SPEED = 10.0
 
     def __init__(self, world, pilots_locations_filename, num=20):
@@ -55,16 +53,17 @@ class PilotsInitializer:
 
                 for _ in range(int(pilots_per_company[i])):
                     self._create_pilot(
-                        Polygon(feature['geometry']['coordinates'][0]),
+                        Polygon(feature["geometry"]["coordinates"][0]),
                         companies[i],
-                        location_id)
+                        location_id,
+                    )
 
         self.pilot_company_names = list(pilot_company_names)
 
     def _create_pilots_random_allocation(self, geo_data):
         """Assigning one company to all pilot entities and randomly allocating them."""
 
-        locations_count = len(geo_data['features'])
+        locations_count = len(geo_data["features"])
         pilots_allocation = [0] * locations_count
         self.pilot_company_names = ["Company 1"]
 
@@ -76,9 +75,10 @@ class PilotsInitializer:
 
             for _ in range(pilots_allocation[idx]):
                 self._create_pilot(
-                    Polygon(location_data['geometry']['coordinates'][0]),
+                    Polygon(location_data["geometry"]["coordinates"][0]),
                     random.choice(self.pilot_company_names),
-                    location_id)
+                    location_id,
+                )
 
     def _pilot_fsm_transition_callback(self, ent, pilot_info, vel, event):
         pilot_info_clone = copy.deepcopy(pilot_info)
@@ -87,7 +87,8 @@ class PilotsInitializer:
             f"{event.src} → {event.dst}",
             pilot_info_clone,
             copy.deepcopy(vel),
-            RunInfo.get_instance().timestamp())
+            RunInfo.get_instance().timestamp(),
+        )
 
         pilot_logger = PilotEventLogger.get_instance()
         pilot_logger.log_event(ent, pilot_info_clone, event)
@@ -100,11 +101,14 @@ class PilotsInitializer:
         pilot_info = PilotInfo(company_name=company_name)
         pilot_fsm = PilotStateMachine(
             waiting_location_id=waiting_location_id,
-            on_state_change=lambda ev: self._pilot_fsm_transition_callback(pilot, pilot_info, pilot_velocity, ev))
+            on_state_change=lambda ev: self._pilot_fsm_transition_callback(
+                pilot, pilot_info, pilot_velocity, ev
+            ),
+        )
 
         self.world.add_component(
-            pilot,
-            Position(shapes.random_point_in_polygon(polygon)))
+            pilot, Position(shapes.random_point_in_polygon(polygon))
+        )
 
         self.world.add_component(pilot, pilot_velocity)
         self.world.add_component(pilot, VesselPath())
@@ -120,9 +124,12 @@ class PilotsInitializer:
         location_info = LocationInfo(
             id=feature["properties"]["id"],
             name=feature["properties"]["name"],
-            location_type=LocationType.PILOTS_STORAGE)
+            location_type=LocationType.PILOTS_STORAGE,
+        )
 
-        self.world.add_component(location, Shape(shape_points=feature["geometry"]["coordinates"][0]))
+        self.world.add_component(
+            location, Shape(shape_points=feature["geometry"]["coordinates"][0])
+        )
         self.world.add_component(location, location_info)
 
         return location_info.id

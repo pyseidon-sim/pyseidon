@@ -1,2 +1,2 @@
-from .vessel import VesselMessageType
 from .tug import TugMessageType
+from .vessel import VesselMessageType

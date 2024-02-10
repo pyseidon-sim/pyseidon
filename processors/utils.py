@@ -1,9 +1,13 @@
 """Utility functions for processors"""
+
 import math
 import random
+
 import numpy as np
 import numpy.linalg as la
-from utils.constants import KNOTS_TO_METERS_SEC, METERS_TO_COORDS, TARGET_REACHED_DELTA
+
+from utils.constants import (KNOTS_TO_METERS_SEC, METERS_TO_COORDS,
+                             TARGET_REACHED_DELTA)
 
 
 def lonlat_array_to_screen(proj, lonlat):
@@ -33,7 +37,7 @@ def convert_course_angle(angle):
 
     if degrees_angle < 180:
         return math.radians(90 - degrees_angle)
-    
+
     return math.radians((360 - degrees_angle) + 90)
 
 
@@ -48,7 +52,7 @@ def course(direction):
 def smooth_course(direction, prev_course=0, smooth_value=0.2):
     c = course(direction)
     smooth_course = prev_course + smooth_value * (c - prev_course)
-    
+
     return smooth_course
 
 

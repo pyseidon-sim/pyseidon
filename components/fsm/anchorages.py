@@ -15,7 +15,7 @@ class AnchorageStateMachine:
 
     def current(self):
         return self.fsm.current
-    
+
     def book(self, vessel_fsm):
         assert vessel_fsm is not None, "A vessel state machine is required!"
 
@@ -23,6 +23,8 @@ class AnchorageStateMachine:
 
     def remove_vessel(self, vessel_fsm):
         assert vessel_fsm is not None, "The anchorage can't process a null vessel!"
-        assert vessel_fsm in self.current_vessel_fsms, "The anchorage can't process a vessel that isn't at the anchorage!"
+        assert (
+            vessel_fsm in self.current_vessel_fsms
+        ), "The anchorage can't process a vessel that isn't at the anchorage!"
 
         self.current_vessel_fsms.remove(vessel_fsm)

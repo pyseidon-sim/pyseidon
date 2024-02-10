@@ -5,12 +5,8 @@ class PilotInfo:
     """Contains information of a pilot in the port"""
 
     def __init__(
-            self,
-            length=0.0,
-            width=0.0,
-            max_draught=0.0,
-            actual_draught=0.0,
-            **kwargs):
+        self, length=0.0, width=0.0, max_draught=0.0, actual_draught=0.0, **kwargs
+    ):
         """Initializes a new PilotInfo
 
         :param length: length of the pilot vessel (default 0).
@@ -28,7 +24,9 @@ class PilotInfo:
 
         # Add the rest of the arguments to class attributes
         self.__dict__.update(kwargs)
-    
+
     def __repr__(self):
-        return (f"<PilotInfo: {self.name} | {self.length} | {self.width} | "
-                f"{self.actual_draught} (max: {self.max_draught})>")
+        return (
+            f"<PilotInfo: {self.name} | {self.length} | {self.width} | "
+            f"{self.actual_draught} (max: {self.max_draught})>"
+        )

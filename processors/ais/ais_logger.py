@@ -1,9 +1,9 @@
-from environment import RunInfo
 from components import Velocity
 from components.fsm import SpeedStateMachine
+from environment import RunInfo
 from environment.queries import fetch_vessels
-from processors.base_processor import BaseProcessor
 from processors.ais.model.ais_log import AISPositionLogger
+from processors.base_processor import BaseProcessor
 
 
 class AISVesselLogProcessor(BaseProcessor):
@@ -21,4 +21,12 @@ class AISVesselLogProcessor(BaseProcessor):
             except:
                 speed_fsm_state = None
 
-            self.logger.add_log(ent, pos, vel, cs, speed_fsm_state, RunInfo.get_instance().simulation_time(), state=fsm.current())
+            self.logger.add_log(
+                ent,
+                pos,
+                vel,
+                cs,
+                speed_fsm_state,
+                RunInfo.get_instance().simulation_time(),
+                state=fsm.current(),
+            )

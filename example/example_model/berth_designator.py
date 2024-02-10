@@ -1,5 +1,6 @@
-from .vessel_content_type import VesselContentType
 from exceptions import NoBerthException
+
+from .vessel_content_type import VesselContentType
 
 
 def berths_allocation_designator(vessel_info, con_berths):
@@ -8,7 +9,12 @@ def berths_allocation_designator(vessel_info, con_berths):
     # Filter berths that are eligible by vessel's class and cargo type
     for ent, (pos, berth_info, term_fsm) in con_berths:
         # Does the berth allow this type of vessel cargo?
-        if berth_info.allowed_vessel_content_type() != VesselContentType.map_vessel_type_to_vessel_content_type(vessel_info.vessel_type):
+        if (
+            berth_info.allowed_vessel_content_type()
+            != VesselContentType.map_vessel_type_to_vessel_content_type(
+                vessel_info.vessel_type
+            )
+        ):
             continue
 
         # Does the berth allow this type of vessel class?

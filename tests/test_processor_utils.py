@@ -1,8 +1,9 @@
 import math
-import pytest
-import numpy as np
 
-from processors.utils import vector_angle, course, convert_course_angle
+import numpy as np
+import pytest
+
+from processors.utils import convert_course_angle, course, vector_angle
 
 
 def test_vector_angle():
@@ -40,7 +41,6 @@ def test_convert_course_angle():
     north = math.radians(0)
     south = math.radians(180)
     south_neg = math.radians(-180)
-    
 
     line = math.radians(45)
     negative_line = math.radians(-45)

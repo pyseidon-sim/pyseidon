@@ -3,48 +3,54 @@ import json
 import random
 
 from shapely.geometry import Polygon
-from processors.base_processor import BaseProcessor
-from components.fsm import VesselStateMachine, SpeedStateMachine, NULL_SPEED_MODEL
-from components import Position, Course, Velocity, VesselPath, FrameCounter
-from utils.timer import SimulationTimer, TimerScheduler
-from utils.shapes import random_point_in_polygon
 
-from log.events.vessel import VesselEvent
-
+from components import Course, FrameCounter, Position, Velocity, VesselPath
+from components.fsm import (NULL_SPEED_MODEL, SpeedStateMachine,
+                            VesselStateMachine)
 from environment import RunInfo
+from log.events.vessel import VesselEvent
+from processors.base_processor import BaseProcessor
+from utils.shapes import random_point_in_polygon
+from utils.timer import SimulationTimer, TimerScheduler
 
 
 class VesselGeneratorProcessor(BaseProcessor):
     """
-        Generates vessels based on an inter-arrival time and vessel
-        properties generators, to be supplied as functions.
+    Generates vessels based on an inter-arrival time and vessel
+    properties generators, to be supplied as functions.
     """
+
     def __init__(
-            self,
-            world,
-            inter_arrival_time_sampler,
-            vessel_info_sampler,
-            spawn_area_filename,
-            vessel_logger=None,
-            default_speed_knots=15,
-            speed_model_probabilities=NULL_SPEED_MODEL,
-            anomalous_vessels_percent=0):
+        self,
+        world,
+        inter_arrival_time_sampler,
+        vessel_info_sampler,
+        spawn_area_filename,
+        vessel_logger=None,
+        default_speed_knots=15,
+        speed_model_probabilities=NULL_SPEED_MODEL,
+        anomalous_vessels_percent=0,
+    ):
         """
-            :param world: Esper world object
-            :param inter_arrival_time_sampler: a function that samples an inter-arrival time for vessels
-            :param vessel_info_sampler: a function that samples vessel_info
-            :param spawn_area_filename: the name of a geojson file that denotes a spawn area for vessels
-            :param vessel_logger: VesselEventLogger singleton that is logging events about vessels
-            :param default_speed_knots: The default velocity of a vessel in knots
-            :param speed_model_probabilities: The Markov Model depicting state of vessels velocities
-             (used for generating velocity anomalies)
-            :param anomalous_vessels_percent: the percentage of all vessels having the anomalous velocity
-            markov model attached
+        :param world: Esper world object
+        :param inter_arrival_time_sampler: a function that samples an inter-arrival time for vessels
+        :param vessel_info_sampler: a function that samples vessel_info
+        :param spawn_area_filename: the name of a geojson file that denotes a spawn area for vessels
+        :param vessel_logger: VesselEventLogger singleton that is logging events about vessels
+        :param default_speed_knots: The default velocity of a vessel in knots
+        :param speed_model_probabilities: The Markov Model depicting state of vessels velocities
+         (used for generating velocity anomalies)
+        :param anomalous_vessels_percent: the percentage of all vessels having the anomalous velocity
+        markov model attached
         """
         assert world is not None, "A world is required!"
-        assert inter_arrival_time_sampler is not None, "An inter-arrival distribution is required!"
+        assert (
+            inter_arrival_time_sampler is not None
+        ), "An inter-arrival distribution is required!"
         assert vessel_info_sampler is not None, "A vessel info sampler is required!"
-        assert type(speed_model_probabilities) == dict, "No probabilities for the speed model were provided!"
+        assert (
+            type(speed_model_probabilities) == dict
+        ), "No probabilities for the speed model were provided!"
 
         self.world = world
         self.vessel_info_sampler = vessel_info_sampler
@@ -63,7 +69,8 @@ class VesselGeneratorProcessor(BaseProcessor):
         spawn_area_file.close()
 
         self.spawn_area = Polygon(
-            spawn_area_json["features"][0]["geometry"]["coordinates"])
+            spawn_area_json["features"][0]["geometry"]["coordinates"]
+        )
 
     def _process(self, dt):
         if self.generation_timer.completed():
@@ -75,8 +82,8 @@ class VesselGeneratorProcessor(BaseProcessor):
         inter_arrival_time = self.inter_arrival_time_sampler()
 
         self.generation_timer = SimulationTimer(
-            duration=inter_arrival_time,
-            target_function=self.generate_vessel)
+            duration=inter_arrival_time, target_function=self.generate_vessel
+        )
         TimerScheduler.get_instance().schedule(self.generation_timer)
 
     def generate_vessel(self):
@@ -103,22 +110,18 @@ class VesselGeneratorProcessor(BaseProcessor):
             speed_fsm = SpeedStateMachine(
                 double_p=self.speed_model_probabilities["double"],
                 halve_p=self.speed_model_probabilities["half"],
-                normal_p=self.speed_model_probabilities["reset"])
+                normal_p=self.speed_model_probabilities["reset"],
+            )
 
             self.world.add_component(vessel, speed_fsm)
 
         vessel_state_machine = VesselStateMachine()
         vessel_state_machine.generate()
         vessel_state_machine.fsm.onchangestate = lambda x: self._log_vessel_event(
-            vessel,
-            vessel_info,
-            vessel_state_machine,
-            velocity,
-            f"{x.src} → {x.dst}")
+            vessel, vessel_info, vessel_state_machine, velocity, f"{x.src} → {x.dst}"
+        )
 
-        self.world.add_component(
-            vessel,
-            vessel_state_machine)
+        self.world.add_component(vessel, vessel_state_machine)
 
     def _log_vessel_event(self, ent, vessel_info, fsm, velocity, event_type):
         if self.vessel_logger is None:
@@ -132,6 +135,7 @@ class VesselGeneratorProcessor(BaseProcessor):
             copy.deepcopy(fsm.tugboats),
             fsm.destination_berth_id,
             fsm.destination_anchorage_id,
-            RunInfo.get_instance().timestamp())
+            RunInfo.get_instance().timestamp(),
+        )
 
         self.vessel_logger.log_event(ent, vessel_info, event)
